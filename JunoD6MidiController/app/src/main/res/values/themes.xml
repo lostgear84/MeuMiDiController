@@ -1,10 +1,21 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <style name="AppTheme" parent="@android:style/Theme.Material.Light.NoActionBar">
+
+    <style name="AppTheme" parent="@android:style/Theme.Material.NoActionBar">
         <item name="android:fontFamily">sans</item>
-        <item name="android:colorAccent">#3F51B5</item>
-        <item name="android:navigationBarColor">#000000</item>
-        <item name="android:statusBarColor">#1A237E</item>
+
+        <!-- Fundo do app e das áreas do sistema -->
+        <item name="android:windowBackground">#0A0905</item>
+        <item name="android:colorAccent">#FFB000</item>
+        <item name="android:statusBarColor">#0A0905</item>
+        <item name="android:navigationBarColor">#0A0905</item>
+
+        <!-- Ícones claros em fundo escuro -->
         <item name="android:windowLightStatusBar">false</item>
+        <item name="android:windowLightNavigationBar">false</item>
+
+        <!-- Evita flash branco ao abrir/trocar de tela -->
+        <item name="android:windowDisablePreview">false</item>
     </style>
+
 </resources>

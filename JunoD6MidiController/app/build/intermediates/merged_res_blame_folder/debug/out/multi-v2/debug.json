@@ -1,7 +1,7 @@
 {
     "logs": [
         {
-            "outputFile": "com.example.junod6midicontroller.app-merged_res-4:/values_values.arsc.flat",
+            "outputFile": "C:\\Users\\Erick\\.gradle\\daemon\\8.2\\com.example.junod6midicontroller.app-merged_res-4:\\values_values.arsc.flat",
             "map": [
                 {
                     "source": "C:\\dev\\MeuMiDiController\\JunoD6MidiController\\app\\src\\main\\res\\values\\strings.xml",
@@ -23,20 +23,20 @@
                 {
                     "source": "C:\\dev\\MeuMiDiController\\JunoD6MidiController\\app\\src\\main\\res\\values\\themes.xml",
                     "from": {
-                        "startLines": "2",
+                        "startLines": "3",
                         "startColumns": "4",
-                        "startOffsets": "57",
-                        "endLines": "8",
+                        "startOffsets": "59",
+                        "endLines": "18",
                         "endColumns": "12",
-                        "endOffsets": "449"
+                        "endOffsets": "808"
                     },
                     "to": {
                         "startLines": "3",
                         "startColumns": "4",
                         "startOffsets": "105",
-                        "endLines": "9",
+                        "endLines": "18",
                         "endColumns": "12",
-                        "endOffsets": "491"
+                        "endOffsets": "706"
                     }
                 }
             ]

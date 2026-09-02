@@ -1,11 +1,20 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">Juno D6 MIDI</string>
-    <style name="AppTheme" parent="@android:style/Theme.Material.Light.NoActionBar">
+    <style name="AppTheme" parent="@android:style/Theme.Material.NoActionBar">
         <item name="android:fontFamily">sans</item>
-        <item name="android:colorAccent">#3F51B5</item>
-        <item name="android:navigationBarColor">#000000</item>
-        <item name="android:statusBarColor">#1A237E</item>
+
+        
+        <item name="android:windowBackground">#0A0905</item>
+        <item name="android:colorAccent">#FFB000</item>
+        <item name="android:statusBarColor">#0A0905</item>
+        <item name="android:navigationBarColor">#0A0905</item>
+
+        
         <item name="android:windowLightStatusBar">false</item>
+        <item name="android:windowLightNavigationBar">false</item>
+
+        
+        <item name="android:windowDisablePreview">false</item>
     </style>
 </resources>

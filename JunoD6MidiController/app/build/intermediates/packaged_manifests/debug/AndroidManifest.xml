@@ -19,7 +19,9 @@
         android:allowBackup="true"
         android:debuggable="true"
         android:extractNativeLibs="false"
+        android:icon="@drawable/app_icon_source"
         android:label="Juno D6 MIDI"
+        android:roundIcon="@drawable/app_icon_source"
         android:supportsRtl="true"
         android:theme="@style/AppTheme" >
         <activity
