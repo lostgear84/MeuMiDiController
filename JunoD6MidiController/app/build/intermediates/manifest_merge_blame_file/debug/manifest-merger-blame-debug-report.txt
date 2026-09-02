@@ -1,0 +1,55 @@
+1<?xml version="1.0" encoding="utf-8"?>
+2<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+3    package="com.example.junod6midicontroller"
+4    android:versionCode="1"
+5    android:versionName="1.0" >
+6
+7    <uses-sdk
+8        android:minSdkVersion="26"
+9        android:targetSdkVersion="34" />
+10
+11    <uses-feature
+11-->C:\dev\MeuMiDiController\JunoD6MidiController\app\src\main\AndroidManifest.xml:4:5-6:36
+12        android:name="android.hardware.usb.host"
+12-->C:\dev\MeuMiDiController\JunoD6MidiController\app\src\main\AndroidManifest.xml:5:9-49
+13        android:required="false" />
+13-->C:\dev\MeuMiDiController\JunoD6MidiController\app\src\main\AndroidManifest.xml:6:9-33
+14    <uses-feature
+14-->C:\dev\MeuMiDiController\JunoD6MidiController\app\src\main\AndroidManifest.xml:8:5-10:36
+15        android:name="android.software.midi"
+15-->C:\dev\MeuMiDiController\JunoD6MidiController\app\src\main\AndroidManifest.xml:9:9-45
+16        android:required="false" />
+16-->C:\dev\MeuMiDiController\JunoD6MidiController\app\src\main\AndroidManifest.xml:10:9-33
+17
+18    <application
+18-->C:\dev\MeuMiDiController\JunoD6MidiController\app\src\main\AndroidManifest.xml:12:5-29:19
+19        android:allowBackup="true"
+19-->C:\dev\MeuMiDiController\JunoD6MidiController\app\src\main\AndroidManifest.xml:13:9-35
+20        android:debuggable="true"
+21        android:extractNativeLibs="false"
+22        android:label="Juno D6 MIDI"
+22-->C:\dev\MeuMiDiController\JunoD6MidiController\app\src\main\AndroidManifest.xml:14:9-37
+23        android:supportsRtl="true"
+23-->C:\dev\MeuMiDiController\JunoD6MidiController\app\src\main\AndroidManifest.xml:15:9-35
+24        android:theme="@style/AppTheme" >
+24-->C:\dev\MeuMiDiController\JunoD6MidiController\app\src\main\AndroidManifest.xml:16:9-40
+25        <activity
+25-->C:\dev\MeuMiDiController\JunoD6MidiController\app\src\main\AndroidManifest.xml:18:9-27:20
+26            android:name="com.example.junod6midicontroller.MainActivity"
+26-->C:\dev\MeuMiDiController\JunoD6MidiController\app\src\main\AndroidManifest.xml:19:13-41
+27            android:exported="true" >
+27-->C:\dev\MeuMiDiController\JunoD6MidiController\app\src\main\AndroidManifest.xml:20:13-36
+28            <intent-filter>
+28-->C:\dev\MeuMiDiController\JunoD6MidiController\app\src\main\AndroidManifest.xml:22:13-25:29
+29                <action android:name="android.intent.action.MAIN" />
+29-->C:\dev\MeuMiDiController\JunoD6MidiController\app\src\main\AndroidManifest.xml:23:17-69
+29-->C:\dev\MeuMiDiController\JunoD6MidiController\app\src\main\AndroidManifest.xml:23:25-66
+30
+31                <category android:name="android.intent.category.LAUNCHER" />
+31-->C:\dev\MeuMiDiController\JunoD6MidiController\app\src\main\AndroidManifest.xml:24:17-77
+31-->C:\dev\MeuMiDiController\JunoD6MidiController\app\src\main\AndroidManifest.xml:24:27-74
+32            </intent-filter>
+33        </activity>
+34    </application>
+35
+36</manifest>

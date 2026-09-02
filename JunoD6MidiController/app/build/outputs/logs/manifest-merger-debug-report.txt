@@ -1,0 +1,63 @@
+-- Merging decision tree log ---
+manifest
+ADDED from C:\dev\MeuMiDiController\JunoD6MidiController\app\src\main\AndroidManifest.xml:2:1-31:12
+INJECTED from C:\dev\MeuMiDiController\JunoD6MidiController\app\src\main\AndroidManifest.xml:2:1-31:12
+INJECTED from C:\dev\MeuMiDiController\JunoD6MidiController\app\src\main\AndroidManifest.xml:2:1-31:12
+INJECTED from C:\dev\MeuMiDiController\JunoD6MidiController\app\src\main\AndroidManifest.xml:2:1-31:12
+	package
+		INJECTED from C:\dev\MeuMiDiController\JunoD6MidiController\app\src\main\AndroidManifest.xml
+	android:versionName
+		INJECTED from C:\dev\MeuMiDiController\JunoD6MidiController\app\src\main\AndroidManifest.xml
+	android:versionCode
+		INJECTED from C:\dev\MeuMiDiController\JunoD6MidiController\app\src\main\AndroidManifest.xml
+	xmlns:android
+		ADDED from C:\dev\MeuMiDiController\JunoD6MidiController\app\src\main\AndroidManifest.xml:2:11-69
+uses-feature#android.hardware.usb.host
+ADDED from C:\dev\MeuMiDiController\JunoD6MidiController\app\src\main\AndroidManifest.xml:4:5-6:36
+	android:required
+		ADDED from C:\dev\MeuMiDiController\JunoD6MidiController\app\src\main\AndroidManifest.xml:6:9-33
+	android:name
+		ADDED from C:\dev\MeuMiDiController\JunoD6MidiController\app\src\main\AndroidManifest.xml:5:9-49
+uses-feature#android.software.midi
+ADDED from C:\dev\MeuMiDiController\JunoD6MidiController\app\src\main\AndroidManifest.xml:8:5-10:36
+	android:required
+		ADDED from C:\dev\MeuMiDiController\JunoD6MidiController\app\src\main\AndroidManifest.xml:10:9-33
+	android:name
+		ADDED from C:\dev\MeuMiDiController\JunoD6MidiController\app\src\main\AndroidManifest.xml:9:9-45
+application
+ADDED from C:\dev\MeuMiDiController\JunoD6MidiController\app\src\main\AndroidManifest.xml:12:5-29:19
+INJECTED from C:\dev\MeuMiDiController\JunoD6MidiController\app\src\main\AndroidManifest.xml:12:5-29:19
+	android:extractNativeLibs
+		INJECTED from C:\dev\MeuMiDiController\JunoD6MidiController\app\src\main\AndroidManifest.xml
+	android:supportsRtl
+		ADDED from C:\dev\MeuMiDiController\JunoD6MidiController\app\src\main\AndroidManifest.xml:15:9-35
+	android:label
+		ADDED from C:\dev\MeuMiDiController\JunoD6MidiController\app\src\main\AndroidManifest.xml:14:9-37
+	android:allowBackup
+		ADDED from C:\dev\MeuMiDiController\JunoD6MidiController\app\src\main\AndroidManifest.xml:13:9-35
+	android:theme
+		ADDED from C:\dev\MeuMiDiController\JunoD6MidiController\app\src\main\AndroidManifest.xml:16:9-40
+activity#com.example.junod6midicontroller.MainActivity
+ADDED from C:\dev\MeuMiDiController\JunoD6MidiController\app\src\main\AndroidManifest.xml:18:9-27:20
+	android:exported
+		ADDED from C:\dev\MeuMiDiController\JunoD6MidiController\app\src\main\AndroidManifest.xml:20:13-36
+	android:name
+		ADDED from C:\dev\MeuMiDiController\JunoD6MidiController\app\src\main\AndroidManifest.xml:19:13-41
+intent-filter#action:name:android.intent.action.MAIN+category:name:android.intent.category.LAUNCHER
+ADDED from C:\dev\MeuMiDiController\JunoD6MidiController\app\src\main\AndroidManifest.xml:22:13-25:29
+action#android.intent.action.MAIN
+ADDED from C:\dev\MeuMiDiController\JunoD6MidiController\app\src\main\AndroidManifest.xml:23:17-69
+	android:name
+		ADDED from C:\dev\MeuMiDiController\JunoD6MidiController\app\src\main\AndroidManifest.xml:23:25-66
+category#android.intent.category.LAUNCHER
+ADDED from C:\dev\MeuMiDiController\JunoD6MidiController\app\src\main\AndroidManifest.xml:24:17-77
+	android:name
+		ADDED from C:\dev\MeuMiDiController\JunoD6MidiController\app\src\main\AndroidManifest.xml:24:27-74
+uses-sdk
+INJECTED from C:\dev\MeuMiDiController\JunoD6MidiController\app\src\main\AndroidManifest.xml reason: use-sdk injection requested
+INJECTED from C:\dev\MeuMiDiController\JunoD6MidiController\app\src\main\AndroidManifest.xml
+INJECTED from C:\dev\MeuMiDiController\JunoD6MidiController\app\src\main\AndroidManifest.xml
+	android:targetSdkVersion
+		INJECTED from C:\dev\MeuMiDiController\JunoD6MidiController\app\src\main\AndroidManifest.xml
+	android:minSdkVersion
+		INJECTED from C:\dev\MeuMiDiController\JunoD6MidiController\app\src\main\AndroidManifest.xml

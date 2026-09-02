@@ -1,0 +1,10 @@
+R_DEF: Internal format may change without notice
+local
+id layoutPresets
+id spinnerBanks
+id tvBanks
+id tvPresets
+id tvTitle
+layout activity_main
+string app_name
+style AppTheme
