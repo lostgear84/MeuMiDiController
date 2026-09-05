@@ -362,7 +362,7 @@ public class MainActivity extends Activity {
     private void addPresetSection(LinearLayout parent) {
         LinearLayout header = new LinearLayout(this);
         header.addView(createSectionTitle("PRESETS"), new LinearLayout.LayoutParams(0, dp(28), 1));
-        header.addView(createSecondaryText("toque no preset para editar", 11, false));
+        header.addView(createSecondaryText("toque no card para editar", 11, false));
         parent.addView(header);
         btnNewPreset = createPrimaryActionButton("+ NOVO PRESET");
         btnNewPreset.setOnClickListener(v -> { if (hasSelectedBank()) showPresetEditor(null, -1); });
@@ -721,12 +721,41 @@ public class MainActivity extends Activity {
         card.setOrientation(LinearLayout.VERTICAL);
         card.setPadding(dp(14), dp(14), dp(14), dp(12));
         card.setBackground(createPanelBackground(palette.panelBackground, palette.border, 18));
+        
+        card.setClickable(true);
+        card.setOnClickListener(v -> showPresetEditor(preset, index));
+        
         TextView name = createPrimaryText(preset.name, 19, true);
         card.addView(name);
         card.addView(createSecondaryText(preset.getActivePartsSummary(), 13, false), marginParams(-1, -2, 0, dp(8), 0, dp(12)));
+        LinearLayout actionRow = new LinearLayout(this);
+        actionRow.setOrientation(LinearLayout.HORIZONTAL);
+
         Button apply = createPrimaryActionButton("APLICAR");
         apply.setOnClickListener(v -> applyPreset(bank, preset));
-        card.addView(apply, new LinearLayout.LayoutParams(-1, dp(44)));
+
+        Button delete = createOutlineButton("EXCLUIR");
+        delete.setOnClickListener(v -> showDeletePresetDialog(preset, index));
+
+        actionRow.addView(
+                apply,
+                new LinearLayout.LayoutParams(0, dp(44), 1)
+        );
+
+        actionRow.addView(
+                delete,
+                marginParams(
+                        0,
+                        dp(44),
+                        dp(8),
+                        0,
+                        0,
+                        0,
+                        1
+                )
+        );
+
+        card.addView(actionRow);
         layoutPresets.addView(card, marginParams(-1, -2, 0, 0, 0, dp(10)));
     }
 
@@ -764,6 +793,53 @@ public class MainActivity extends Activity {
     private void showDeleteBankDialog() {
         if (!hasSelectedBank()) return;
         new AlertDialog.Builder(this).setTitle("EXCLUIR MÚSICA?").setMessage("A música e seus presets serão apagados.").setNegativeButton("CANCELAR", null).setPositiveButton("EXCLUIR", (d, w) -> { banks.remove(selectedBankIndex); selectedBankIndex = -1; saveBanks(); configureBankSpinner(); }).show();
+    }
+
+    private void showDeletePresetDialog(Preset preset, int presetIndex) {
+        if (!hasSelectedBank()) {
+            return;
+        }
+
+        AlertDialog dialog = new AlertDialog.Builder(this)
+                .setTitle("EXCLUIR PRESET?")
+                .setMessage(
+                        "O preset \"" + preset.name
+                                + "\" será apagado desta música."
+                )
+                .setNegativeButton("CANCELAR", null)
+                .setPositiveButton("EXCLUIR", null)
+                .create();
+
+        dialog.setOnShowListener(listener -> {
+            Button deleteButton = dialog.getButton(
+                    AlertDialog.BUTTON_POSITIVE
+            );
+
+            if (deleteButton != null) {
+                deleteButton.setTextColor(palette.accent);
+
+                deleteButton.setOnClickListener(view -> {
+                    Bank bank = banks.get(selectedBankIndex);
+
+                    if (presetIndex >= 0
+                            && presetIndex < bank.presets.size()) {
+                        bank.presets.remove(presetIndex);
+                        saveBanks();
+                        refreshPresetList();
+
+                        Toast.makeText(
+                                this,
+                                "Preset excluído.",
+                                Toast.LENGTH_SHORT
+                        ).show();
+                    }
+
+                    dialog.dismiss();
+                });
+            }
+        });
+
+        dialog.show();
     }
 
     private void showPresetEditor(Preset preset, int index) {
