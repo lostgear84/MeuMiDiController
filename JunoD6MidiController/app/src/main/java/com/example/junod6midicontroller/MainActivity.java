@@ -38,6 +38,8 @@ import org.json.JSONObject;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 
 public class MainActivity extends Activity {
@@ -128,31 +130,52 @@ public class MainActivity extends Activity {
     private void applySelectedTheme() {
         if (selectedTheme == THEME_MATRIX) {
             palette = new ThemePalette(R.drawable.background_matrix,
-                    Color.rgb(5, 8, 7), Color.argb(70, 0, 0, 0),
+                    Color.rgb(5, 8, 7), Color.argb(135, 0, 0, 0),
                     Color.argb(176, 0, 5, 2), Color.argb(195, 0, 4, 2), Color.argb(187, 0, 3, 1),
-                    Color.rgb(0, 232, 58), Color.rgb(131, 255, 155), Color.rgb(10, 122, 43),
-                    Color.rgb(231, 255, 233), Color.rgb(145, 220, 163), Color.rgb(3, 22, 7),
+                    Color.rgb(80, 255, 0), Color.rgb(150, 255, 60), Color.rgb(24, 120, 8),
+                    Color.rgb(220, 255, 210), Color.rgb(125, 205, 95), Color.rgb(3, 20, 2),
                     Color.rgb(22, 112, 52), Color.rgb(10, 33, 17),
-                    Color.rgb(60, 255, 121), Color.rgb(22, 124, 58), Color.rgb(154, 255, 179));
+                    Color.rgb(80, 255, 0), Color.rgb(20, 105, 5), Color.rgb(130, 255, 45));
             return;
         }
         if (selectedTheme == THEME_NEON) {
-            palette = new ThemePalette(R.drawable.background_neon,
-                    Color.rgb(8, 5, 21), Color.argb(70, 0, 0, 0),
-                    Color.argb(176, 5, 3, 16), Color.argb(195, 4, 2, 14), Color.argb(187, 3, 2, 11),
-                    Color.rgb(222, 40, 157), Color.rgb(255, 119, 210), Color.rgb(118, 25, 101),
-                    Color.rgb(248, 243, 255), Color.rgb(196, 181, 220), Color.rgb(21, 6, 23),
-                    Color.rgb(74, 45, 114), Color.rgb(25, 13, 50),
-                    Color.rgb(40, 205, 255), Color.rgb(25, 110, 157), Color.rgb(125, 221, 255));
+            palette = new ThemePalette(
+                    R.drawable.background_neon,
+
+                    Color.rgb(3, 5, 24),
+                    Color.argb(115, 0, 0, 0),
+                    Color.argb(205, 3, 5, 24),
+                    Color.argb(225, 2, 3, 18),
+                    Color.argb(215, 2, 2, 14),
+
+                    // Azul dominante
+                    Color.rgb(35, 150, 255),
+                    Color.rgb(120, 215, 255),
+                    Color.rgb(12, 70, 155),
+
+                    // Textos
+                    Color.rgb(225, 245, 255),
+                    Color.rgb(130, 185, 220),
+                    Color.rgb(4, 12, 28),
+
+                    // Bordas discretas
+                    Color.rgb(24, 60, 110),
+                    Color.rgb(9, 18, 45),
+
+                    // Magenta somente como detalhe
+                    Color.rgb(190, 45, 210),
+                    Color.rgb(105, 20, 125),
+                    Color.rgb(235, 130, 245)
+            );
             return;
         }
         palette = new ThemePalette(R.drawable.background_amber,
-                Color.rgb(10, 9, 5), Color.argb(70, 0, 0, 0),
+                Color.rgb(10, 9, 5), Color.argb(135, 0, 0, 0),
                 Color.argb(176, 5, 4, 1), Color.argb(195, 4, 3, 1), Color.argb(187, 3, 3, 1),
-                Color.rgb(255, 176, 0), Color.rgb(255, 214, 100), Color.rgb(173, 112, 0),
-                Color.rgb(255, 249, 234), Color.rgb(218, 171, 82), Color.rgb(20, 15, 4),
+                Color.rgb(255, 145, 35), Color.rgb(255, 195, 105), Color.rgb(170, 78, 12),
+                Color.rgb(255, 238, 210), Color.rgb(220, 158, 92), Color.rgb(28, 12, 3),
                 Color.rgb(106, 77, 21), Color.rgb(18, 15, 6),
-                Color.rgb(255, 176, 0), Color.rgb(173, 112, 0), Color.rgb(255, 210, 92));
+                Color.rgb(255, 145, 35), Color.rgb(150, 65, 10), Color.rgb(255, 185, 90));
     }
 
     private void configureSystemBars() {
@@ -184,6 +207,18 @@ public class MainActivity extends Activity {
         performanceMode = true;
         activePresetIndex = -1;
         buildPerformanceScreen();
+    }
+
+    private void sortBanksAlphabetically() {
+        Collections.sort(
+                banks,
+                new Comparator<Bank>() {
+                    @Override
+                    public int compare(Bank first, Bank second) {
+                        return first.name.compareToIgnoreCase(second.name);
+                    }
+                }
+        );
     }
 
     private boolean hasSelectedBank() {
@@ -225,44 +260,124 @@ public class MainActivity extends Activity {
 
     private void buildPerformanceScreen() {
         FrameLayout root = createScreenWithBackground();
+
         LinearLayout content = new LinearLayout(this);
         content.setOrientation(LinearLayout.VERTICAL);
         content.setPadding(dp(16), dp(14), dp(16), dp(20));
-        addThemeSelector(content);
-        LinearLayout header = new LinearLayout(this);
-        header.setOrientation(LinearLayout.VERTICAL);
-        header.setPadding(dp(18), dp(16), dp(18), dp(16));
-        header.setBackground(createPanelBackground(palette.panelBackground, palette.secondaryAccent, 18));
-        TextView label = createAccentText("PERFORMANCE MODE", 11, true);
-        label.setLetterSpacing(0.15f);
+
+        /*
+        * Cabeçalho fixo:
+        * sem seletor de tema, sem caixa externa e sem texto auxiliar.
+        */
+        TextView title = createPrimaryText(
+                "PERFORMANCE MODE",
+                12,
+                true
+        );
+        title.setLetterSpacing(0.10f);
+
+        content.addView(
+                title,
+                marginParams(
+                        -1,
+                        -2,
+                        dp(4),
+                        0,
+                        dp(4),
+                        dp(8)
+                )
+        );
+
         Button song = createSongSelectorButton();
         song.setOnClickListener(v -> showPerformanceSongSelector(song));
-        TextView help = createSecondaryText("Toque em um pad para disparar o preset.", 13, false);
-        header.addView(label);
-        header.addView(song, marginParams(-1, dp(54), 0, dp(6), 0, 0));
-        header.addView(help);
-        content.addView(header, marginParams(-1, -2, 0, 0, 0, dp(12)));
+
+        content.addView(
+                song,
+                marginParams(
+                        -1,
+                        dp(52),
+                        0,
+                        0,
+                        0,
+                        dp(10)
+                )
+        );
+
         LinearLayout midi = new LinearLayout(this);
         midi.setGravity(Gravity.CENTER_VERTICAL);
         midi.setPadding(dp(12), dp(8), dp(12), dp(8));
-        midi.setBackground(createPanelBackground(palette.panelBackground, palette.secondaryAccentDark, 14));
+        midi.setBackground(
+                createPanelBackground(
+                        palette.panelBackground,
+                        palette.secondaryAccentDark,
+                        14
+                )
+        );
+
         TextView dot = createSecondaryText("●", 15, false);
-        TextView status = createSecondaryText(selectedMidiDeviceInfo == null ? "MIDI: aguardando USB-OTG" : "MIDI: " + getMidiDeviceName(selectedMidiDeviceInfo), 12, true);
+
+        TextView status = createSecondaryText(
+                selectedMidiDeviceInfo == null
+                        ? "MIDI: aguardando USB-OTG"
+                        : "MIDI: " + getMidiDeviceName(selectedMidiDeviceInfo),
+                12,
+                true
+        );
         status.setPadding(dp(8), 0, 0, 0);
+
         midi.addView(dot);
         midi.addView(status);
-        content.addView(midi, marginParams(-1, -2, 0, 0, 0, dp(12)));
-        ScrollView padsScroll = new ScrollView(this);
-        padsScroll.setFillViewport(true);
+
+        content.addView(
+                midi,
+                marginParams(
+                        -1,
+                        -2,
+                        0,
+                        0,
+                        0,
+                        dp(10)
+                )
+        );
+
+        /*
+        * A área de pads ocupa somente o espaço entre o cabeçalho e o botão Voltar.
+        * Não há ScrollView nesta tela.
+        */
         LinearLayout pads = new LinearLayout(this);
         pads.setOrientation(LinearLayout.VERTICAL);
-        padsScroll.addView(pads);
+
         addPerformancePads(pads);
-        content.addView(padsScroll, new LinearLayout.LayoutParams(-1, 0, 1));
+
+        content.addView(
+                pads,
+                new LinearLayout.LayoutParams(
+                        -1,
+                        0,
+                        1
+                )
+        );
+
         Button back = createOutlineButton("← VOLTAR PARA EDIÇÃO");
         back.setOnClickListener(v -> showEditorMode());
-        content.addView(back, marginParams(-1, dp(50), 0, dp(12), 0, 0));
-        root.addView(content, new FrameLayout.LayoutParams(-1, -1));
+
+        content.addView(
+                back,
+                marginParams(
+                        -1,
+                        dp(50),
+                        0,
+                        dp(10),
+                        0,
+                        0
+                )
+        );
+
+        root.addView(
+                content,
+                new FrameLayout.LayoutParams(-1, -1)
+        );
+
         setContentView(root);
     }
 
@@ -275,21 +390,55 @@ public class MainActivity extends Activity {
         amber.setOnClickListener(v -> selectTheme(THEME_AMBER));
         matrix.setOnClickListener(v -> selectTheme(THEME_MATRIX));
         neon.setOnClickListener(v -> selectTheme(THEME_NEON));
-        row.addView(amber, new LinearLayout.LayoutParams(0, dp(42), 1));
-        row.addView(matrix, marginParams(0, dp(42), dp(7), 0, dp(7), 0, 1));
-        row.addView(neon, new LinearLayout.LayoutParams(0, dp(42), 1));
+        row.addView(amber, new LinearLayout.LayoutParams(0, dp(29), 1));
+        row.addView(matrix, marginParams(0, dp(29), dp(7), 0, dp(7), 0, 1));
+        row.addView(neon, new LinearLayout.LayoutParams(0, dp(29), 1));
         parent.addView(row);
     }
 
     private Button createThemeButton(String text, int themeId) {
+        boolean active = selectedTheme == themeId;
+
         Button button = new Button(this);
+
         button.setText(text);
         button.setAllCaps(false);
-        button.setTextSize(11);
+        button.setTextSize(10);
         button.setTypeface(Typeface.DEFAULT_BOLD);
         button.setGravity(Gravity.CENTER);
-        button.setTextColor(selectedTheme == themeId ? getThemeTextDark(themeId) : getThemeAccent(themeId));
-        button.setBackground(createRoundedBackground(selectedTheme == themeId ? getThemeAccent(themeId) : palette.panelBackground, selectedTheme == themeId ? getThemeAccentBright(themeId) : getThemeAccentDark(themeId), 18, 1));
+        button.setLetterSpacing(0.04f);
+        button.setPadding(dp(5), 0, dp(5), 0);
+
+        int accent = getThemeAccent(themeId);
+        int bright = getThemeAccentBright(themeId);
+        int dark = getThemeAccentDark(themeId);
+
+        if (active) {
+            button.setTextColor(getThemeTextDark(themeId));
+            button.setBackground(
+                    createRaisedBackground(
+                            accent,
+                            bright,
+                            dark,
+                            16
+                    )
+            );
+            applyDarkTextShadow(button);
+            applyButtonElevation(button, 4);
+        } else {
+            button.setTextColor(accent);
+            button.setBackground(
+                    createDarkRaisedBackground(
+                            palette.panelBackground,
+                            dark,
+                            accent,
+                            16
+                    )
+            );
+            applyGlow(button, accent, 1.2f, 100);
+            applyButtonElevation(button, 2);
+        }
+
         return button;
     }
 
@@ -328,14 +477,14 @@ public class MainActivity extends Activity {
         card.addView(tvMidiStatus);
         Button refresh = createOutlineButton("ATUALIZAR DISPOSITIVOS MIDI");
         refresh.setOnClickListener(v -> refreshMidiDevices());
-        card.addView(refresh, new LinearLayout.LayoutParams(-1, dp(46)));
+        card.addView(refresh, new LinearLayout.LayoutParams(-1, dp(34)));
         parent.addView(card, marginParams(-1, -2, 0, 0, 0, dp(10)));
     }
 
     private void addPerformanceButton(LinearLayout parent) {
         Button button = createPrimaryActionButton("▶ MODO PERFORMANCE");
         button.setOnClickListener(v -> showPerformanceMode());
-        parent.addView(button, marginParams(-1, dp(52), 0, 0, 0, dp(18)));
+        parent.addView(button, marginParams(-1, dp(42), 0, 0, 0, dp(18)));
     }
 
     private void addBankSection(LinearLayout parent) {
@@ -353,8 +502,8 @@ public class MainActivity extends Activity {
         add.setOnClickListener(v -> showCreateBankDialog());
         btnDeleteBank = createOutlineButton("EXCLUIR");
         btnDeleteBank.setOnClickListener(v -> showDeleteBankDialog());
-        buttons.addView(add, new LinearLayout.LayoutParams(0, dp(46), 1));
-        buttons.addView(btnDeleteBank, marginParams(0, dp(46), dp(8), 0, 0, 0, 1));
+        buttons.addView(add, new LinearLayout.LayoutParams(0, dp(34), 1));
+        buttons.addView(btnDeleteBank, marginParams(0, dp(34), dp(8), 0, 0, 0, 1));
         card.addView(buttons, marginParams(-1, -2, 0, dp(10), 0, 0));
         parent.addView(card, marginParams(-1, -2, 0, 0, 0, dp(18)));
     }
@@ -366,7 +515,7 @@ public class MainActivity extends Activity {
         parent.addView(header);
         btnNewPreset = createPrimaryActionButton("+ NOVO PRESET");
         btnNewPreset.setOnClickListener(v -> { if (hasSelectedBank()) showPresetEditor(null, -1); });
-        parent.addView(btnNewPreset, marginParams(-1, dp(52), 0, 0, 0, dp(10)));
+        parent.addView(btnNewPreset, marginParams(-1, dp(37), 0, 0, 0, dp(10)));
         tvEmptyPresets = createSecondaryText("Nenhum preset nesta música.", 15, false);
         tvEmptyPresets.setGravity(Gravity.CENTER);
         tvEmptyPresets.setPadding(dp(16), dp(24), dp(16), dp(24));
@@ -410,28 +559,127 @@ public class MainActivity extends Activity {
     }
 
     private void addPerformancePads(LinearLayout parent) {
-        if (!hasSelectedBank()) return;
+        if (!hasSelectedBank()) {
+            return;
+        }
+
         Bank bank = banks.get(selectedBankIndex);
-        for (int i = 0; i < Math.min(bank.presets.size(), 8); i += 2) {
+
+        int presetLimit = Math.min(bank.presets.size(), 8);
+
+        for (int i = 0; i < presetLimit; i += 2) {
+            boolean hasSecondPreset = i + 1 < presetLimit;
+
+            if (!hasSecondPreset) {
+                parent.addView(
+                        createPerformancePad(bank.presets.get(i), i),
+                        marginParams(
+                                -1,
+                                dp(92),
+                                0,
+                                0,
+                                0,
+                                dp(8)
+                        )
+                );
+                continue;
+            }
+
             LinearLayout row = new LinearLayout(this);
-            Preset first = bank.presets.get(i);
-            row.addView(createPerformancePad(first, i), new LinearLayout.LayoutParams(0, dp(158), 1));
-            if (i + 1 < bank.presets.size()) row.addView(createPerformancePad(bank.presets.get(i + 1), i + 1), marginParams(0, dp(158), dp(10), 0, 0, 0, 1));
-            parent.addView(row, marginParams(-1, dp(158), 0, 0, 0, dp(10)));
+            row.setOrientation(LinearLayout.HORIZONTAL);
+
+            row.addView(
+                    createPerformancePad(bank.presets.get(i), i),
+                    new LinearLayout.LayoutParams(
+                            0,
+                            dp(92),
+                            1
+                    )
+            );
+
+            row.addView(
+                    createPerformancePad(bank.presets.get(i + 1), i + 1),
+                    marginParams(
+                            0,
+                            dp(92),
+                            dp(10),
+                            0,
+                            0,
+                            0,
+                            1
+                    )
+            );
+
+            parent.addView(
+                    row,
+                    marginParams(
+                            -1,
+                            dp(92),
+                            0,
+                            0,
+                            0,
+                            dp(8)
+                    )
+            );
         }
     }
 
-    private LinearLayout createPerformancePad(Preset preset, int index) {
-        LinearLayout pad = new LinearLayout(this);
-        pad.setOrientation(LinearLayout.VERTICAL);
-        pad.setGravity(Gravity.CENTER);
-        pad.setPadding(dp(10), dp(12), dp(10), dp(10));
-        pad.setBackground(createRoundedBackground(index == activePresetIndex ? palette.accent : palette.padBackground, index == activePresetIndex ? palette.accentBright : palette.secondaryAccentDark, 20, index == activePresetIndex ? 2 : 1));
-        pad.addView(createPrimaryText(preset.name.toUpperCase(), 18, true));
-        pad.addView(createSecondaryText(preset.getShortActivePartsSummary(), 11, false));
-        pad.setOnClickListener(v -> { activePresetIndex = index; applyPreset(banks.get(selectedBankIndex), preset); buildPerformanceScreen(); });
-        return pad;
+private LinearLayout createPerformancePad(Preset preset, int index) {
+    boolean active = index == activePresetIndex;
+
+    LinearLayout pad = new LinearLayout(this);
+    pad.setOrientation(LinearLayout.VERTICAL);
+    pad.setGravity(Gravity.CENTER);
+    pad.setPadding(dp(8), dp(8), dp(8), dp(8));
+
+    pad.setBackground(
+            createRoundedBackground(
+                    active ? palette.accent : palette.padBackground,
+                    active
+                            ? palette.accentBright
+                            : palette.secondaryAccentDark,
+                    20,
+                    active ? 2 : 1
+            )
+    );
+
+    TextView presetName = createPrimaryText(
+            preset.name.toUpperCase(),
+            16,
+            true
+    );
+
+    if (active) {
+        presetName.setTextColor(palette.textDark);
     }
+
+    presetName.setGravity(Gravity.CENTER);
+    presetName.setMaxLines(1);
+
+    TextView parts = createSecondaryText(
+            preset.getShortActivePartsSummary(),
+            10,
+            false
+    );
+
+    if (active) {
+        parts.setTextColor(palette.textDark);
+    }
+
+    parts.setGravity(Gravity.CENTER);
+    parts.setPadding(0, dp(4), 0, 0);
+
+    pad.addView(presetName);
+    pad.addView(parts);
+
+    pad.setOnClickListener(v -> {
+        activePresetIndex = index;
+        applyPreset(banks.get(selectedBankIndex), preset);
+        buildPerformanceScreen();
+    });
+
+    return pad;
+}
 
     private void refreshMidiDevices() {
         if (midiManager == null) return;
@@ -739,7 +987,7 @@ public class MainActivity extends Activity {
 
         actionRow.addView(
                 apply,
-                new LinearLayout.LayoutParams(0, dp(44), 1)
+                new LinearLayout.LayoutParams(0, dp(32), 1)
         );
 
         actionRow.addView(
@@ -780,7 +1028,10 @@ public class MainActivity extends Activity {
             if (name.isEmpty() || scene < 1 || scene > 128) return;
             Bank bank = new Bank(name, scene);
             banks.add(bank);
-            selectedBankIndex = banks.size() - 1;
+            sortBanksAlphabetically();
+
+            selectedBankIndex = banks.indexOf(bank);
+
             saveBanks();
             configureBankSpinner();
             spinnerBanks.setSelection(selectedBankIndex);
@@ -1016,7 +1267,11 @@ public class MainActivity extends Activity {
                 }
                 banks.add(bank);
             }
-        } catch (JSONException ignored) { banks.clear(); }
+
+            sortBanksAlphabetically();
+        } catch (JSONException ignored) { 
+            banks.clear(); 
+        }
     }
 
     private TextView createSectionTitle(String text) { return createSecondaryText(text, 12, true); }
@@ -1024,16 +1279,225 @@ public class MainActivity extends Activity {
     private TextView createPrimaryText(String text, float size, boolean bold) { TextView v = new TextView(this); v.setText(text); v.setTextSize(size); v.setTextColor(palette.textPrimary); if (bold) v.setTypeface(Typeface.DEFAULT_BOLD); return v; }
     private TextView createSecondaryText(String text, float size, boolean bold) { TextView v = new TextView(this); v.setText(text); v.setTextSize(size); v.setTextColor(palette.textSecondary); if (bold) v.setTypeface(Typeface.DEFAULT_BOLD); return v; }
     private TextView createAccentText(String text, float size, boolean bold) { TextView v = new TextView(this); v.setText(text); v.setTextSize(size); v.setTextColor(palette.accent); if (bold) v.setTypeface(Typeface.DEFAULT_BOLD); return v; }
-    private Button createPrimaryActionButton(String text) { Button b = new Button(this); b.setText(text); b.setAllCaps(false); b.setTextColor(palette.textDark); b.setTypeface(Typeface.DEFAULT_BOLD); b.setBackground(createRoundedBackground(palette.accent, palette.accentBright, 20, 1)); return b; }
-    private Button createOutlineButton(String text) { Button b = new Button(this); b.setText(text); b.setAllCaps(false); b.setTextColor(palette.secondaryAccent); b.setTypeface(Typeface.DEFAULT_BOLD); b.setBackground(createRoundedBackground(palette.panelStrong, palette.secondaryAccentDark, 20, 1)); return b; }
+    private Button createPrimaryActionButton(String text) {
+        Button button = new Button(this);
+
+        button.setText(text);
+        button.setAllCaps(false);
+        button.setTextSize(12);
+        button.setTypeface(Typeface.DEFAULT_BOLD);
+        button.setTextColor(palette.textDark);
+        button.setGravity(Gravity.CENTER);
+        button.setLetterSpacing(0.025f);
+
+        button.setPadding(dp(10), 0, dp(10), 0);
+
+        button.setBackground(
+                createRaisedBackground(
+                        palette.accent,
+                        palette.accentBright,
+                        palette.accentDark,
+                        18
+                )
+        );
+
+        applyDarkTextShadow(button);
+        applyButtonElevation(button, 5);
+
+        return button;
+    }
+    private Button createOutlineButton(String text) {
+        Button button = new Button(this);
+
+        button.setText(text);
+        button.setAllCaps(false);
+        button.setTextSize(12);
+        button.setTypeface(Typeface.DEFAULT_BOLD);
+        button.setTextColor(palette.secondaryAccent);
+        button.setGravity(Gravity.CENTER);
+        button.setLetterSpacing(0.025f);
+
+        button.setPadding(dp(10), 0, dp(10), 0);
+
+        button.setBackground(
+                createDarkRaisedBackground(
+                        palette.panelStrong,
+                        palette.secondaryAccentDark,
+                        palette.secondaryAccent,
+                        18
+                )
+        );
+
+        applyGlow(button, palette.secondaryAccent, 1.6f, 120);
+        applyButtonElevation(button, 3);
+
+        return button;
+    }
     private EditText createThemeEditText(String hint) { EditText e = new EditText(this); e.setHint(hint); e.setTextColor(palette.textPrimary); e.setHintTextColor(palette.textSecondary); e.setSingleLine(true); e.setBackground(createRoundedBackground(palette.panelStrong, palette.secondaryAccentDark, 12, 1)); return e; }
     private Button createPartButton(int index, boolean enabled) { Button b = new Button(this); b.setAllCaps(false); updatePartButton(b, index, enabled); return b; }
-    private void updatePartButton(Button b, int index, boolean enabled) { b.setText("PART " + (index + 1) + "\n" + (enabled ? "ON" : "OFF")); b.setTextColor(enabled ? palette.textDark : palette.secondaryAccent); b.setBackground(createRoundedBackground(enabled ? palette.accent : palette.partOff, enabled ? palette.accentBright : palette.secondaryAccentDark, 18, 1)); }
+    private void updatePartButton(
+            Button button,
+            int index,
+            boolean enabled
+    ) {
+        button.setText(
+                "PART " + (index + 1)
+                        + "\n"
+                        + (enabled ? "ON" : "OFF")
+        );
+
+        button.setTextSize(12);
+        button.setTypeface(Typeface.DEFAULT_BOLD);
+        button.setGravity(Gravity.CENTER);
+        button.setPadding(dp(4), 0, dp(4), 0);
+
+        if (enabled) {
+            button.setTextColor(palette.textDark);
+            button.setBackground(
+                    createRaisedBackground(
+                            palette.accent,
+                            palette.accentBright,
+                            palette.accentDark,
+                            16
+                    )
+            );
+            applyDarkTextShadow(button);
+            applyButtonElevation(button, 3);
+        } else {
+            button.setTextColor(palette.secondaryAccent);
+            button.setBackground(
+                    createDarkRaisedBackground(
+                            palette.partOff,
+                            palette.secondaryAccentDark,
+                            palette.secondaryAccent,
+                            16
+                    )
+            );
+            applyGlow(button, palette.secondaryAccent, 1.2f, 110);
+            applyButtonElevation(button, 2);
+        }
+    }
     private int parseSceneNumber(String value) { try { return Integer.parseInt(value.trim()); } catch (NumberFormatException e) { return 0; } }
     private int dp(int value) { return Math.round(value * getResources().getDisplayMetrics().density); }
     private LinearLayout.LayoutParams marginParams(int width, int height, int left, int top, int right, int bottom) { LinearLayout.LayoutParams p = new LinearLayout.LayoutParams(width, height); p.setMargins(left, top, right, bottom); return p; }
     private LinearLayout.LayoutParams marginParams(int width, int height, int left, int top, int right, int bottom, float weight) { LinearLayout.LayoutParams p = new LinearLayout.LayoutParams(width, height, weight); p.setMargins(left, top, right, bottom); return p; }
-    private GradientDrawable createPanelBackground(int fill, int stroke, int radius) { return createRoundedBackground(fill, stroke, radius, 1); }
+    
+    private int withAlpha(int color, int alpha) {
+        return Color.argb(
+                alpha,
+                Color.red(color),
+                Color.green(color),
+                Color.blue(color)
+        );
+    }
+    
+    private GradientDrawable createRaisedBackground(
+            int centerColor,
+            int topColor,
+            int bottomColor,
+            int radiusDp
+    ) {
+        GradientDrawable drawable = new GradientDrawable(
+                GradientDrawable.Orientation.TOP_BOTTOM,
+            new int[] {
+                    withAlpha(topColor, 165),
+                    withAlpha(centerColor, 165),
+                    withAlpha(bottomColor, 165)
+            }
+        );
+
+        drawable.setCornerRadius(dp(radiusDp));
+        drawable.setStroke(dp(1), topColor);
+
+        return drawable;
+    }
+
+    private GradientDrawable createDarkRaisedBackground(
+            int centerColor,
+            int borderColor,
+            int topHighlightColor,
+            int radiusDp
+    ) {
+        int upperColor = Color.argb(
+                165,
+                Color.red(centerColor),
+                Color.green(centerColor),
+                Color.blue(centerColor)
+        );
+
+        int lowerColor = Color.argb(
+                175,
+                Math.max(0, Color.red(centerColor) - 8),
+                Math.max(0, Color.green(centerColor) - 8),
+                Math.max(0, Color.blue(centerColor) - 8)
+        );
+
+        GradientDrawable drawable = new GradientDrawable(
+                GradientDrawable.Orientation.TOP_BOTTOM,
+                new int[] {
+                        upperColor,
+                        lowerColor
+                }
+        );
+
+        drawable.setCornerRadius(dp(radiusDp));
+        drawable.setStroke(dp(1), borderColor);
+
+        return drawable;
+    }
+
+    private void applyButtonElevation(View view, int elevationDp) {
+        view.setElevation(dp(elevationDp));
+    }
+
+    private void applyGlow(
+            TextView view,
+            int color,
+            float radiusDp,
+            int alpha
+    ) {
+        view.setLayerType(View.LAYER_TYPE_SOFTWARE, null);
+
+        view.setShadowLayer(
+                dpFloat(radiusDp),
+                0f,
+                dpFloat(1f),
+                Color.argb(
+                        alpha,
+                        Color.red(color),
+                        Color.green(color),
+                        Color.blue(color)
+                )
+        );
+    }
+
+    private void applyDarkTextShadow(TextView view) {
+        view.setLayerType(View.LAYER_TYPE_SOFTWARE, null);
+
+        view.setShadowLayer(
+                dpFloat(1f),
+                0f,
+                dpFloat(1f),
+                Color.argb(150, 0, 0, 0)
+        );
+    }
+
+    private float dpFloat(float value) {
+        return value * getResources().getDisplayMetrics().density;
+    }
+
+    private GradientDrawable createPanelBackground(
+            int fill,
+            int stroke,
+            int radius
+    ) {
+        return createRoundedBackground(
+                fill,
+                stroke,
+                radius,
+                1
+        );
+    }
     private GradientDrawable createRoundedBackground(int fill, int stroke, int radius, int width) { GradientDrawable d = new GradientDrawable(); d.setColor(fill); d.setCornerRadius(dp(radius)); if (width > 0) d.setStroke(dp(width), stroke); return d; }
 
     private static class ThemePalette {
