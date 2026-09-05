@@ -11,7 +11,11 @@ import android.media.midi.MidiDevice;
 import android.media.midi.MidiDeviceInfo;
 import android.media.midi.MidiInputPort;
 import android.media.midi.MidiManager;
+import android.media.midi.MidiOutputPort;
+import android.media.midi.MidiReceiver;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.view.Gravity;
 import android.view.View;
 import android.view.Window;
@@ -64,16 +68,23 @@ public class MainActivity extends Activity {
     private MidiDeviceInfo selectedMidiDeviceInfo;
     private MidiDevice midiDevice;
     private MidiInputPort midiInputPort;
+    private MidiOutputPort midiOutputPort;
+    private MidiReceiver midiReceiver;
     private ThemePalette palette;
+
+    private final Handler mainHandler = new Handler(Looper.getMainLooper());
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
         loadSelectedTheme();
         applySelectedTheme();
         configureSystemBars();
         loadBanks();
+
         midiManager = (MidiManager) getSystemService(Context.MIDI_SERVICE);
+        
         buildMainScreen();
     }
 
@@ -436,16 +447,97 @@ public class MainActivity extends Activity {
 
     private void openMidiDeviceIfNeeded() {
         closeMidiDevice();
-        if (midiManager == null || selectedMidiDeviceInfo == null) return;
+
+        if (midiManager == null || selectedMidiDeviceInfo == null) {
+            return;
+        }
+
         midiManager.openDevice(selectedMidiDeviceInfo, device -> {
-            if (device != null) {
-                midiDevice = device;
+            if (device == null) {
+                return;
+            }
+
+            midiDevice = device;
+
+            if (selectedMidiDeviceInfo.getOutputPortCount() > 0) {
                 midiInputPort = device.openInputPort(0);
+            }
+
+            if (selectedMidiDeviceInfo.getInputPortCount() > 0) {
+                midiOutputPort = device.openOutputPort(0);
+
+                if (midiOutputPort != null) {
+                    midiReceiver = new MidiReceiver() {
+                        @Override
+                        public void onSend(
+                                byte[] message,
+                                int offset,
+                                int count,
+                                long timestamp
+                        ) {
+                            StringBuilder hex = new StringBuilder();
+
+                            for (int i = offset; i < offset + count; i++) {
+                                hex.append(
+                                        String.format(
+                                                "%02X ",
+                                                message[i] & 0xFF
+                                        )
+                                );
+                            }
+                            /* 
+
+                            String receivedMessage = hex.toString().trim();
+
+                            if (receivedMessage.startsWith("F0 41")) {
+                                runOnUiThread(() -> showMidiReceivedDialog(receivedMessage));
+                            } 
+                            */                           
+                        }
+                    };
+
+                    midiOutputPort.connect(midiReceiver);
+                }
             }
         }, null);
     }
 
+    private void showMidiReceivedDialog(String receivedMessage) {
+        TextView messageView = new TextView(this);
+
+        messageView.setText(receivedMessage);
+        messageView.setTextSize(16);
+        messageView.setTextColor(Color.WHITE);
+        messageView.setPadding(dp(24), dp(18), dp(24), dp(18));
+        messageView.setTextIsSelectable(true);
+
+        ScrollView scrollView = new ScrollView(this);
+        scrollView.addView(messageView);
+
+        AlertDialog dialog = new AlertDialog.Builder(this)
+                .setTitle("MIDI RECEBIDO")
+                .setView(scrollView)
+                .setPositiveButton("FECHAR", null)
+                .create();
+
+        dialog.show();
+    }
+
     private void closeMidiDevice() {
+        if (midiOutputPort != null) {
+            if (midiReceiver != null) {
+                midiOutputPort.disconnect(midiReceiver);
+            }
+
+            try {
+                midiOutputPort.close();
+            } catch (IOException ignored) {
+            }
+
+            midiOutputPort = null;
+            midiReceiver = null;
+        }
+
         if (midiInputPort != null) {
             try {
                 midiInputPort.close();
@@ -533,6 +625,52 @@ public class MainActivity extends Activity {
                   + "Troque a música novamente em 1 segundo.",
             Toast.LENGTH_LONG
         ).show();
+        }
+    }
+
+    private void testPart1On() {
+        if (midiInputPort == null) {
+            openMidiDeviceIfNeeded();
+            if (midiInputPort == null) {
+                Toast.makeText(
+                        this,
+                        "MIDI: porta ainda não foi aberta.",
+                        Toast.LENGTH_LONG
+                ).show();
+                return;
+            }
+        }
+
+        byte[] sysex = new byte[] {
+                (byte) 0xF0,
+                (byte) 0x11,
+                (byte) 0x00,
+                (byte) 0x00,
+                (byte) 0x41,
+                (byte) 0x10,
+                (byte) 0x00,
+                (byte) 0x00,
+                (byte) 0x06,
+                (byte) 0x01,
+                (byte) 0xF7
+        };
+
+        try {
+            midiInputPort.send(sysex, 0, sysex.length);
+            Toast.makeText(
+                    this,
+                    "Part 1: ON enviado",
+                    Toast.LENGTH_SHORT
+            ).show();
+        } catch (IOException exception) {
+            closeMidiDevice();
+            openMidiDeviceIfNeeded();
+
+            Toast.makeText(
+                    this,
+                    "Erro ao enviar Part 1: " + exception.getMessage(),
+                    Toast.LENGTH_LONG
+            ).show();
         }
     }
 
@@ -666,8 +804,96 @@ public class MainActivity extends Activity {
     }
 
     private void applyPreset(Bank bank, Preset preset) {
-        String status = selectedMidiDeviceInfo == null ? "MIDI: aguardando conexão USB-OTG." : "MIDI detectado: " + getMidiDeviceName(selectedMidiDeviceInfo);
-        Toast.makeText(this, "PRESET SELECIONADO\n" + preset.name.toUpperCase() + "\n\nMúsica: " + bank.name + "\n" + preset.getActivePartsSummary() + "\n\n" + status, Toast.LENGTH_LONG).show();
+        if (midiInputPort == null) {
+            openMidiDeviceIfNeeded();
+
+            Toast.makeText(
+                    this,
+                    "MIDI reconectando. Toque em APLICAR novamente em 1 segundo.",
+                    Toast.LENGTH_LONG
+            ).show();
+            return;
+        }
+
+        try {
+            for (int partIndex = 0; partIndex < 8; partIndex++) {
+                int partNumber = partIndex + 1;
+
+                /*
+                * Mapa real capturado do JUNO:
+                *
+                * Part 1 = 01 00 21 00
+                * Part 2 = 01 00 22 00
+                * ...
+                * Part 8 = 01 00 28 00
+                */
+                int addressPart = 0x20 + partNumber;
+
+                /*
+                * Estado salvo no preset:
+                * true  = ON  = 01
+                * false = OFF = 00
+                */
+                int value = preset.partStates[partIndex] ? 0x01 : 0x00;
+
+                /*
+                * Checksum Roland:
+                * 128 - (soma dos bytes de endereço e dados)
+                */
+                int checksum = (
+                        128 - (
+                                (
+                                        0x01
+                                                + 0x00
+                                                + addressPart
+                                                + 0x00
+                                                + value
+                                ) % 128
+                        )
+                ) & 0x7F;
+
+                byte[] message = new byte[] {
+                        (byte) 0xF0,
+                        (byte) 0x41,
+                        (byte) 0x10,
+                        (byte) 0x01,
+                        (byte) 0x05,
+                        (byte) 0x0A,
+                        (byte) 0x12,
+
+                        (byte) 0x01,
+                        (byte) 0x00,
+                        (byte) addressPart,
+                        (byte) 0x00,
+
+                        (byte) value,
+
+                        (byte) checksum,
+                        (byte) 0xF7
+                };
+
+                midiInputPort.send(message, 0, message.length);
+            }
+
+            Toast.makeText(
+                    this,
+                    "PRESET APLICADO\n"
+                            + preset.name.toUpperCase()
+                            + "\n\n"
+                            + preset.getActivePartsSummary(),
+                    Toast.LENGTH_LONG
+            ).show();
+
+        } catch (IOException exception) {
+            closeMidiDevice();
+            openMidiDeviceIfNeeded();
+
+            Toast.makeText(
+                    this,
+                    "MIDI caiu. Reconectando; toque novamente em 1 segundo.",
+                    Toast.LENGTH_LONG
+            ).show();
+        }
     }
 
     private void saveBanks() {
