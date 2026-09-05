@@ -1,50 +1,46 @@
 [
     {
+        "merged": "com.example.junod6midicontroller.app-merged_res-4:/drawable_button_outline_glass.xml.flat",
+        "source": "com.example.junod6midicontroller.app-main-6:/drawable/button_outline_glass.xml"
+    },
+    {
         "merged": "com.example.junod6midicontroller.app-merged_res-4:/drawable_background_matrix.jpg.flat",
         "source": "com.example.junod6midicontroller.app-main-6:/drawable/background_matrix.jpg"
     },
     {
-        "merged": "C:\\Users\\Erick\\.gradle\\daemon\\8.2\\com.example.junod6midicontroller.app-merged_res-4:\\drawable_background_neon.jpg.flat",
-        "source": "C:\\Users\\Erick\\.gradle\\daemon\\8.2\\com.example.junod6midicontroller.app-main-6:\\drawable\\background_neon.jpg"
+        "merged": "com.example.junod6midicontroller.app-merged_res-4:/drawable_button_amber_selector.xml.flat",
+        "source": "com.example.junod6midicontroller.app-main-6:/drawable/button_amber_selector.xml"
     },
     {
-        "merged": "C:\\Users\\Erick\\.gradle\\daemon\\8.2\\com.example.junod6midicontroller.app-merged_res-4:\\drawable_button_outline_glass_pressed.xml.flat",
-        "source": "C:\\Users\\Erick\\.gradle\\daemon\\8.2\\com.example.junod6midicontroller.app-main-6:\\drawable\\button_outline_glass_pressed.xml"
+        "merged": "com.example.junod6midicontroller.app-merged_res-4:/drawable_app_icon_source.png.flat",
+        "source": "com.example.junod6midicontroller.app-main-6:/drawable/app_icon_source.png"
     },
     {
-        "merged": "C:\\Users\\Erick\\.gradle\\daemon\\8.2\\com.example.junod6midicontroller.app-merged_res-4:\\drawable_app_icon_source.png.flat",
-        "source": "C:\\Users\\Erick\\.gradle\\daemon\\8.2\\com.example.junod6midicontroller.app-main-6:\\drawable\\app_icon_source.png"
+        "merged": "com.example.junod6midicontroller.app-merged_res-4:/drawable_button_outline_selector.xml.flat",
+        "source": "com.example.junod6midicontroller.app-main-6:/drawable/button_outline_selector.xml"
     },
     {
-        "merged": "C:\\Users\\Erick\\.gradle\\daemon\\8.2\\com.example.junod6midicontroller.app-merged_res-4:\\drawable_button_outline_selector.xml.flat",
-        "source": "C:\\Users\\Erick\\.gradle\\daemon\\8.2\\com.example.junod6midicontroller.app-main-6:\\drawable\\button_outline_selector.xml"
+        "merged": "com.example.junod6midicontroller.app-merged_res-4:/drawable_button_outline_glass_pressed.xml.flat",
+        "source": "com.example.junod6midicontroller.app-main-6:/drawable/button_outline_glass_pressed.xml"
     },
     {
-        "merged": "C:\\Users\\Erick\\.gradle\\daemon\\8.2\\com.example.junod6midicontroller.app-merged_res-4:\\layout_activity_main.xml.flat",
-        "source": "C:\\Users\\Erick\\.gradle\\daemon\\8.2\\com.example.junod6midicontroller.app-main-6:\\layout\\activity_main.xml"
+        "merged": "com.example.junod6midicontroller.app-merged_res-4:/drawable_background_neon.jpg.flat",
+        "source": "com.example.junod6midicontroller.app-main-6:/drawable/background_neon.jpg"
     },
     {
-        "merged": "C:\\Users\\Erick\\.gradle\\daemon\\8.2\\com.example.junod6midicontroller.app-merged_res-4:\\drawable_button_amber_glass.xml.flat",
-        "source": "C:\\Users\\Erick\\.gradle\\daemon\\8.2\\com.example.junod6midicontroller.app-main-6:\\drawable\\button_amber_glass.xml"
+        "merged": "com.example.junod6midicontroller.app-merged_res-4:/drawable_button_amber_glass_pressed.xml.flat",
+        "source": "com.example.junod6midicontroller.app-main-6:/drawable/button_amber_glass_pressed.xml"
     },
     {
-        "merged": "C:\\Users\\Erick\\.gradle\\daemon\\8.2\\com.example.junod6midicontroller.app-merged_res-4:\\drawable_background_noir.jpg.flat",
-        "source": "C:\\Users\\Erick\\.gradle\\daemon\\8.2\\com.example.junod6midicontroller.app-main-6:\\drawable\\background_noir.jpg"
+        "merged": "com.example.junod6midicontroller.app-merged_res-4:/layout_activity_main.xml.flat",
+        "source": "com.example.junod6midicontroller.app-main-6:/layout/activity_main.xml"
     },
     {
-        "merged": "C:\\Users\\Erick\\.gradle\\daemon\\8.2\\com.example.junod6midicontroller.app-merged_res-4:\\drawable_button_amber_selector.xml.flat",
-        "source": "C:\\Users\\Erick\\.gradle\\daemon\\8.2\\com.example.junod6midicontroller.app-main-6:\\drawable\\button_amber_selector.xml"
+        "merged": "com.example.junod6midicontroller.app-merged_res-4:/drawable_button_amber_glass.xml.flat",
+        "source": "com.example.junod6midicontroller.app-main-6:/drawable/button_amber_glass.xml"
     },
     {
-        "merged": "C:\\Users\\Erick\\.gradle\\daemon\\8.2\\com.example.junod6midicontroller.app-merged_res-4:\\drawable_button_outline_glass.xml.flat",
-        "source": "C:\\Users\\Erick\\.gradle\\daemon\\8.2\\com.example.junod6midicontroller.app-main-6:\\drawable\\button_outline_glass.xml"
-    },
-    {
-        "merged": "C:\\Users\\Erick\\.gradle\\daemon\\8.2\\com.example.junod6midicontroller.app-merged_res-4:\\drawable_background_amber.jpg.flat",
-        "source": "C:\\Users\\Erick\\.gradle\\daemon\\8.2\\com.example.junod6midicontroller.app-main-6:\\drawable\\background_amber.jpg"
-    },
-    {
-        "merged": "C:\\Users\\Erick\\.gradle\\daemon\\8.2\\com.example.junod6midicontroller.app-merged_res-4:\\drawable_button_amber_glass_pressed.xml.flat",
-        "source": "C:\\Users\\Erick\\.gradle\\daemon\\8.2\\com.example.junod6midicontroller.app-main-6:\\drawable\\button_amber_glass_pressed.xml"
+        "merged": "com.example.junod6midicontroller.app-merged_res-4:/drawable_background_amber.jpg.flat",
+        "source": "com.example.junod6midicontroller.app-main-6:/drawable/background_amber.jpg"
     }
 ]

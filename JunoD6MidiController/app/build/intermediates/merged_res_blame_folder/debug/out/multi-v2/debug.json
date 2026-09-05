@@ -1,7 +1,7 @@
 {
     "logs": [
         {
-            "outputFile": "C:\\Users\\Erick\\.gradle\\daemon\\8.2\\com.example.junod6midicontroller.app-merged_res-4:\\values_values.arsc.flat",
+            "outputFile": "com.example.junod6midicontroller.app-merged_res-4:/values_values.arsc.flat",
             "map": [
                 {
                     "source": "C:\\dev\\MeuMiDiController\\JunoD6MidiController\\app\\src\\main\\res\\values\\strings.xml",
