@@ -32,7 +32,7 @@ INJECTED from C:\dev\MeuMiDiController\JunoD6MidiController\app\src\main\Android
 	android:supportsRtl
 		ADDED from C:\dev\MeuMiDiController\JunoD6MidiController\app\src\main\AndroidManifest.xml:17:9-35
 	android:label
-		ADDED from C:\dev\MeuMiDiController\JunoD6MidiController\app\src\main\AndroidManifest.xml:15:9-37
+		ADDED from C:\dev\MeuMiDiController\JunoD6MidiController\app\src\main\AndroidManifest.xml:15:9-41
 	android:roundIcon
 		ADDED from C:\dev\MeuMiDiController\JunoD6MidiController\app\src\main\AndroidManifest.xml:16:9-54
 	android:icon
