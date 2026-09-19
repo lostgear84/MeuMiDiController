@@ -4,7 +4,7 @@
             "outputFile": "com.example.junod6midicontroller.app-merged_res-4:/values_values.arsc.flat",
             "map": [
                 {
-                    "source": "C:\\dev\\MeuMiDiController\\JunoD6MidiController\\app\\src\\main\\res\\values\\strings.xml",
+                    "source": "/media/erick/HDD_BACKUP/backup_hd/dev/MeuMiDiController/JunoD6MidiController/app/src/main/res/values/strings.xml",
                     "from": {
                         "startLines": "2",
                         "startColumns": "4",
@@ -21,7 +21,7 @@
                     }
                 },
                 {
-                    "source": "C:\\dev\\MeuMiDiController\\JunoD6MidiController\\app\\src\\main\\res\\values\\themes.xml",
+                    "source": "/media/erick/HDD_BACKUP/backup_hd/dev/MeuMiDiController/JunoD6MidiController/app/src/main/res/values/themes.xml",
                     "from": {
                         "startLines": "3",
                         "startColumns": "4",

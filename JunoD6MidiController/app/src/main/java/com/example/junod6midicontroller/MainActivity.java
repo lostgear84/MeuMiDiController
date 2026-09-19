@@ -1157,13 +1157,6 @@ public class MainActivity extends Activity {
                     return;
                 }
 
-                Bank existing = findBankByScene(scene);
-                if (existing != null) {
-                    inputScene.setError("A USER Scene " + scene + " já está cadastrada como \"" + existing.name + "\".");
-                    inputScene.requestFocus();
-                    return;
-                }
-
                 Bank bank = new Bank(name, scene);
                 banks.add(bank);
                 sortBanksAlphabetically();
@@ -1189,15 +1182,6 @@ public class MainActivity extends Activity {
         });
 
         dialog.show();
-    }
-
-    private Bank findBankByScene(int scene) {
-        for (Bank bank : banks) {
-            if (bank.scene == scene) {
-                return bank;
-            }
-        }
-        return null;
     }
 
     private void showCreateBankDialog() {
@@ -1237,13 +1221,6 @@ public class MainActivity extends Activity {
 
             if (scene < 1 || scene > 128) {
                 inputScene.setError("Informe um número entre 1 e 128.");
-                inputScene.requestFocus();
-                return;
-            }
-
-            Bank existing = findBankByScene(scene);
-            if (existing != null) {
-                inputScene.setError("A USER Scene " + scene + " já está cadastrada como \"" + existing.name + "\".");
                 inputScene.requestFocus();
                 return;
             }

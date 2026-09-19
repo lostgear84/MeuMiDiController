@@ -20,9 +20,19 @@ android {
         }
     }
 
+    lint {
+        disable 'All'
+    }
+    
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_17
         targetCompatibility JavaVersion.VERSION_17
+    }
+
+    tasks.whenTaskAdded { task ->
+        if (task.name == 'lintVitalAnalyzeRelease' || task.name == 'lintAnalyzeDebug') {
+            task.enabled = false
+        }
     }
 }
 

@@ -1,6 +1,6 @@
-#Tue Sep 08 15:44:54 BRT 2026
-base.0=C\:\\dev\\MeuMiDiController\\JunoD6MidiController\\app\\build\\intermediates\\dex\\debug\\mergeProjectDexDebug\\0\\classes.dex
-base.1=C\:\\dev\\MeuMiDiController\\JunoD6MidiController\\app\\build\\intermediates\\dex\\debug\\mergeProjectDexDebug\\13\\classes.dex
+#Fri Sep 18 23:30:03 GMT-03:00 2026
+base.0=/media/erick/HDD_BACKUP/backup_hd/dev/MeuMiDiController/JunoD6MidiController/app/build/intermediates/dex/debug/mergeProjectDexDebug/0/classes.dex
+base.1=/media/erick/HDD_BACKUP/backup_hd/dev/MeuMiDiController/JunoD6MidiController/app/build/intermediates/dex/debug/mergeProjectDexDebug/13/classes.dex
 path.0=0/classes.dex
 path.1=13/classes.dex
 renamed.0=classes.dex
