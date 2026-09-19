@@ -1,7 +1,0 @@
-com.example.junod6midicontroller.app-pngs-0 /media/erick/HDD_BACKUP/backup_hd/dev/MeuMiDiController/JunoD6MidiController/app/build/generated/res/pngs/debug
-com.example.junod6midicontroller.app-resValues-1 /media/erick/HDD_BACKUP/backup_hd/dev/MeuMiDiController/JunoD6MidiController/app/build/generated/res/resValues/debug
-com.example.junod6midicontroller.app-packageDebugResources-2 /media/erick/HDD_BACKUP/backup_hd/dev/MeuMiDiController/JunoD6MidiController/app/build/intermediates/incremental/debug/packageDebugResources/merged.dir
-com.example.junod6midicontroller.app-packageDebugResources-3 /media/erick/HDD_BACKUP/backup_hd/dev/MeuMiDiController/JunoD6MidiController/app/build/intermediates/incremental/debug/packageDebugResources/stripped.dir
-com.example.junod6midicontroller.app-merged_res-4 /media/erick/HDD_BACKUP/backup_hd/dev/MeuMiDiController/JunoD6MidiController/app/build/intermediates/merged_res/debug
-com.example.junod6midicontroller.app-debug-5 /media/erick/HDD_BACKUP/backup_hd/dev/MeuMiDiController/JunoD6MidiController/app/src/debug/res
-com.example.junod6midicontroller.app-main-6 /media/erick/HDD_BACKUP/backup_hd/dev/MeuMiDiController/JunoD6MidiController/app/src/main/res
