@@ -597,14 +597,8 @@ public class MainActivity extends Activity {
         content.setOrientation(LinearLayout.VERTICAL);
         content.setPadding(dp(6), dp(6), dp(6), dp(6));
 
-        PopupWindow popup = new PopupWindow(content, anchor.getWidth(), -2, true);
-        popup.setBackgroundDrawable(createRoundedBackground(
-                palette.panelStrong,
-                palette.secondaryAccentDark,
-                16,
-                1
-        ));
-        popup.setOutsideTouchable(true);
+        // Declara popup antes, mas ainda sem conteúdo
+        final PopupWindow[] popupRef = new PopupWindow[1];
 
         for (int i = 0; i < banks.size(); i++) {
             final int index = i;
@@ -613,13 +607,43 @@ public class MainActivity extends Activity {
                 selectedBankIndex = index;
                 activePresetIndex = -1;
                 selectSongScene(banks.get(index));
-                popup.dismiss();
+                if (popupRef[0] != null) {
+                    popupRef[0].dismiss();
+                }
                 buildPerformanceScreen();
             });
             content.addView(button, marginParams(-1, dp(52), 0, 0, 0, dp(4)));
         }
 
-        popup.showAsDropDown(anchor, 0, dp(4));
+        ScrollView scroll = new ScrollView(this);
+        scroll.setFillViewport(false);
+        scroll.setVerticalScrollBarEnabled(true);
+        scroll.setOverScrollMode(View.OVER_SCROLL_IF_CONTENT_SCROLLS);
+
+        scroll.addView(
+                content,
+                new ScrollView.LayoutParams(
+                        ScrollView.LayoutParams.MATCH_PARENT,
+                        ScrollView.LayoutParams.WRAP_CONTENT
+                )
+        );
+
+        popupRef[0] = new PopupWindow(
+                scroll,
+                anchor.getWidth(),
+                dp(400),
+                true
+        );
+
+        popupRef[0].setBackgroundDrawable(createRoundedBackground(
+                palette.panelStrong,
+                palette.secondaryAccentDark,
+                16,
+                1
+        ));
+        popupRef[0].setOutsideTouchable(true);
+
+        popupRef[0].showAsDropDown(anchor, 0, dp(4));
     }
 
     private void addPerformancePads(LinearLayout parent) {
