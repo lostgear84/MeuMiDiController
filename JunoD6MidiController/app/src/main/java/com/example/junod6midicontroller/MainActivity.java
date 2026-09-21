@@ -44,15 +44,15 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.UUID;
 
+
 public class MainActivity extends Activity {
     private static final String PREFS_NAME = "juno_d6_midi_prefs";
     private static final String KEY_BANKS_JSON = "banks_json";
     private static final String KEY_SELECTED_THEME = "selected_theme";
 
     private static final int THEME_STANDARD = 0;
-    private static final int THEME_AMBER = 1;
-    private static final int THEME_MATRIX = 2;
-    private static final int THEME_NEON = 3;
+    private static final int THEME_STANDARD_WHITE = 0;
+    private static final int THEME_STANDARD_DARK = 1;
 
     private static final int ROLAND_DEVICE_ID = 0x10;
     private static final int ROLAND_MODEL_ID_1 = 0x01;
@@ -68,6 +68,10 @@ public class MainActivity extends Activity {
 
     private final List<Bank> banks = new ArrayList<>();
     private final Handler mainHandler = new Handler(Looper.getMainLooper());
+    private static final long SPLASH_DURATION_MS = 2200L;
+
+    private boolean splashVisible = false;
+    private Runnable splashTimeout;
 
     private static final String KEY_SETLISTS_JSON = "setlists_json";
     private final List<Setlist> setlists = new ArrayList<>();
@@ -85,7 +89,7 @@ public class MainActivity extends Activity {
 
     private int selectedBankIndex = -1;
     private int activePresetIndex = -1;
-    private int selectedTheme = THEME_AMBER;
+    private int selectedTheme = THEME_STANDARD_WHITE;
     private boolean performanceMode = false;
     private boolean performanceFromSetlist = false;
 
@@ -120,7 +124,8 @@ public class MainActivity extends Activity {
         loadSetlists();
 
         midiManager = (MidiManager) getSystemService(Context.MIDI_SERVICE);
-        buildMainScreen();
+        
+        showSplashScreen();
     }
 
     @Override
@@ -150,11 +155,17 @@ public class MainActivity extends Activity {
     }
 
     private void loadSelectedTheme() {
-        SharedPreferences preferences = getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
-        selectedTheme = preferences.getInt(KEY_SELECTED_THEME, THEME_STANDARD);
+        SharedPreferences preferences =
+            getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
 
-        if (selectedTheme < THEME_STANDARD || selectedTheme > THEME_NEON) {
-            selectedTheme = THEME_STANDARD;
+        selectedTheme = preferences.getInt(
+            KEY_SELECTED_THEME,
+            THEME_STANDARD_WHITE
+        );
+
+        if (selectedTheme != THEME_STANDARD_WHITE
+            && selectedTheme != THEME_STANDARD_DARK) {
+            selectedTheme = THEME_STANDARD_WHITE;
         }
     }
 
@@ -166,93 +177,60 @@ public class MainActivity extends Activity {
     }
 
     private void applySelectedTheme() {
-        if (selectedTheme == THEME_STANDARD) {
+        if (selectedTheme == THEME_STANDARD_DARK) {
             palette = new ThemePalette(
-                R.drawable.background_roland,
-                Color.rgb(50, 50, 50),
-                Color.argb(50, 0, 0, 0),       // screenOverlay: preto translúcido
-                Color.argb(180, 25, 25, 25),    // panelBackground: cinza escuro
-                Color.argb(200, 40, 40, 40),    // panelStrong: cinza médio
-                Color.argb(190, 30, 30, 30),    // padBackground: cinza
-                Color.rgb(255, 102, 0),       // accent: laranja Roland
-                Color.rgb(255, 140, 50),      // accentBright: laranja claro
-                Color.rgb(180, 70, 0),        // accentDark: laranja escuro
-                Color.rgb(255, 255, 255),     // textPrimary: branco
-                Color.rgb(200, 200, 200),     // textSecondary: cinza claro
-                Color.rgb(26, 26, 26),        // textDark: preto
-                Color.rgb(80, 80, 80),        // border: cinza borda
-                Color.rgb(40, 40, 40),        // partOff: cinza escuro
-                Color.rgb(255, 102, 0),       // secondaryAccent: laranja
-                Color.rgb(150, 60, 0),        // secondaryAccentDark: laranja escuro
-                Color.rgb(255, 160, 80)       // activeSecondaryText: laranja claro
+                R.drawable.standard_dark,
+
+                Color.rgb(8, 8, 8),
+                Color.argb(20, 0, 0, 0),
+
+                Color.argb(225, 22, 22, 22),
+                Color.rgb(16, 16, 16),
+                Color.rgb(28, 28, 28),
+
+                Color.rgb(255, 92, 0),
+                Color.rgb(255, 135, 55),
+                Color.rgb(205, 55, 0),
+
+                Color.rgb(245, 245, 245),
+                Color.rgb(175, 175, 175),
+                Color.rgb(20, 20, 20),
+
+                Color.rgb(75, 75, 75),
+                Color.rgb(35, 35, 35),
+
+                Color.rgb(255, 112, 20),
+                Color.rgb(145, 55, 10),
+                Color.rgb(255, 180, 110)
             );
             return;
         }
 
-        if (selectedTheme == THEME_MATRIX) {
-            palette = new ThemePalette(
-                    R.drawable.background_matrix,
-                    Color.rgb(5, 8, 7),
-                    Color.argb(135, 0, 0, 0),
-                    Color.argb(176, 0, 5, 2),
-                    Color.argb(195, 0, 4, 2),
-                    Color.argb(187, 0, 3, 1),
-                    Color.rgb(80, 255, 0),
-                    Color.rgb(150, 255, 60),
-                    Color.rgb(24, 120, 8),
-                    Color.rgb(220, 255, 210),
-                    Color.rgb(125, 205, 95),
-                    Color.rgb(3, 20, 2),
-                    Color.rgb(22, 112, 52),
-                    Color.rgb(10, 33, 17),
-                    Color.rgb(80, 255, 0),
-                    Color.rgb(20, 105, 5),
-                    Color.rgb(130, 255, 45)
-            );
-            return;
-        }
-
-        if (selectedTheme == THEME_NEON) {
-            palette = new ThemePalette(
-                    R.drawable.background_neon,
-                    Color.rgb(3, 5, 24),
-                    Color.argb(115, 0, 0, 0),
-                    Color.argb(205, 3, 5, 24),
-                    Color.argb(225, 2, 3, 18),
-                    Color.argb(215, 2, 2, 14),
-                    Color.rgb(35, 150, 255),
-                    Color.rgb(120, 215, 255),
-                    Color.rgb(12, 70, 155),
-                    Color.rgb(225, 245, 255),
-                    Color.rgb(130, 185, 220),
-                    Color.rgb(4, 12, 28),
-                    Color.rgb(24, 60, 110),
-                    Color.rgb(9, 18, 45),
-                    Color.rgb(190, 45, 210),
-                    Color.rgb(105, 20, 125),
-                    Color.rgb(235, 130, 245)
-            );
-            return;
-        }
-
+        // STANDARD WHITE.
         palette = new ThemePalette(
-                R.drawable.background_amber,
-                Color.rgb(10, 9, 5),
-                Color.argb(135, 0, 0, 0),
-                Color.argb(176, 5, 4, 1),
-                Color.argb(195, 4, 3, 1),
-                Color.argb(187, 3, 3, 1),
-                Color.rgb(255, 145, 35),
-                Color.rgb(255, 195, 105),
-                Color.rgb(170, 78, 12),
-                Color.rgb(255, 238, 210),
-                Color.rgb(220, 158, 92),
-                Color.rgb(28, 12, 3),
-                Color.rgb(106, 77, 21),
-                Color.rgb(18, 15, 6),
-                Color.rgb(255, 145, 35),
-                Color.rgb(150, 65, 10),
-                Color.rgb(255, 185, 90)
+            R.drawable.standard_white,
+
+            Color.rgb(248, 248, 248),
+            Color.argb(8, 255, 255, 255),
+
+            Color.argb(235, 255, 255, 255),
+            Color.rgb(242, 242, 242),
+            Color.rgb(232, 232, 232),
+
+            Color.rgb(255, 92, 0),
+            Color.rgb(255, 135, 55),
+            Color.rgb(205, 55, 0),
+
+            Color.rgb(25, 25, 25),
+            Color.rgb(95, 95, 95),
+            Color.WHITE,
+
+            Color.rgb(195, 195, 195),
+            Color.rgb(225, 225, 225),
+
+            Color.rgb(55, 55, 55),
+            Color.rgb(130, 130, 130),
+            Color.rgb(40, 40, 40)
         );
     }
 
@@ -293,7 +271,7 @@ public class MainActivity extends Activity {
         if (!hasSelectedBank()) {
             Toast.makeText(
                     this,
-                    "Crie ou selecione uma música antes de entrar no modo Performance.",
+                    "Crie ou selecione uma cena antes de entrar no modo Performance.",
                     Toast.LENGTH_SHORT
             ).show();
             return;
@@ -334,6 +312,57 @@ public class MainActivity extends Activity {
         return root;
     }
 
+    private void showSplashScreen() {
+        splashVisible = true;
+
+        FrameLayout root = new FrameLayout(this);
+
+        boolean useDarkSplash =
+            selectedTheme == THEME_STANDARD_DARK;
+
+        root.setBackgroundColor(
+            useDarkSplash ? Color.BLACK : Color.WHITE
+        );
+
+        ImageView splashImage = new ImageView(this);
+        splashImage.setImageResource(
+            useDarkSplash
+                ? R.drawable.splash_dark
+                : R.drawable.splash_white
+        );
+        splashImage.setScaleType(ImageView.ScaleType.CENTER_CROP);
+        splashImage.setContentDescription("Tela de abertura");
+        splashImage.setClickable(true);
+
+        root.addView(
+            splashImage,
+            new FrameLayout.LayoutParams(-1, -1)
+        );
+
+        View.OnClickListener startListener =
+            v -> closeSplashScreen();
+
+        root.setOnClickListener(startListener);
+        splashImage.setOnClickListener(startListener);
+
+        setContentView(root);
+    }
+
+    private void closeSplashScreen() {
+        if (!splashVisible) {
+            return;
+        }
+
+        splashVisible = false;
+
+        if (splashTimeout != null) {
+            mainHandler.removeCallbacks(splashTimeout);
+            splashTimeout = null;
+        }
+
+        buildMainScreen();
+    }
+
     private void buildMainScreen() {
         performanceMode = false;
 
@@ -366,28 +395,23 @@ public class MainActivity extends Activity {
         content.setPadding(dp(16), dp(14), dp(16), dp(20));
 
         TextView title = createPrimaryText("PERFORMANCE MODE", 12, true);
-        // Botão para selecionar setlist
-        Button btnSelectSetlist = createOutlineButton("▼ SELECIONAR PLAYLIST");
-        btnSelectSetlist.setOnClickListener(v -> {
-            setlistMode = true;
-            selectedSetlistIndex = -1;
-            buildSetlistScreen();
-        });
-        content.addView(btnSelectSetlist, marginParams(-1, dp(42), 0, 0, 0, dp(10)));
         title.setLetterSpacing(0.10f);
-        content.addView(title, marginParams(-1, -2, dp(4), 0, dp(4), dp(8)));
+        content.addView(
+            title, 
+            marginParams(-1, -2, dp(4), 0, dp(4), dp(8))
+        );
 
         // Se estamos em performance a partir de setlist
         if (performanceFromSetlist && selectedSetlistIndex >= 0 && selectedSetlistIndex < setlists.size()) {
             Setlist currentSetlist = setlists.get(selectedSetlistIndex);
             
             // Botão com nome da setlist
-            Button setlistNameBtn = createOutlineButton("📋 " + currentSetlist.name.toUpperCase());
+            Button setlistNameBtn = createOutlineButton("☰ " + currentSetlist.name.toUpperCase());
             setlistNameBtn.setTextSize(18);
             setlistNameBtn.setOnClickListener(v -> showSetlistSelectorInPerformance(v));
             content.addView(setlistNameBtn, marginParams(-1, dp(52), 0, 0, 0, dp(10)));
 
-            // Indicador de música atual
+            // Indicador de cena atual
             if (currentSetlist.currentMusicIndex >= 0 && 
                 currentSetlist.currentMusicIndex < currentSetlist.bankIndices.size()) {
                 
@@ -396,13 +420,13 @@ public class MainActivity extends Activity {
                     Bank currentBank = banks.get(bankIdx);
                     
                     TextView songInfo = createAccentText(
-                        "MÚSICA " + (currentSetlist.currentMusicIndex + 1) + "/" + 
+                        "CENA " + (currentSetlist.currentMusicIndex + 1) + "/" + 
                         currentSetlist.bankIndices.size() + ": " + currentBank.name.toUpperCase(),
                         13,
                         true
                     );
                     songInfo.setGravity(Gravity.CENTER);
-                    content.addView(songInfo, marginParams(-1, -2, 0, dp(4), 0, dp(10)));
+                    content.addView(songInfo, marginParams(-1, -2, 0, dp(0), 0, dp(10)));
                 }
             }
 
@@ -493,62 +517,101 @@ public class MainActivity extends Activity {
 
         TextView title = createPrimaryText("PLAYLIST MODE", 12, true);
         title.setLetterSpacing(0.10f);
-        content.addView(title, marginParams(-1, -2, dp(4), 0, dp(4), dp(8)));
+        content.addView(
+            title,
+            marginParams(-1, -2, dp(4), 0, dp(4), dp(8))
+        );
 
-        // Seletor de setlist (vamos implementar no próximo passo)
-        Button setlistButton = createOutlineButton("SELECIONE UMA PLAYLIST ▾");
-        setlistButton.setTextSize(22);
-        setlistButton.setOnClickListener(v -> showSetlistSelector(setlistButton));
-        content.addView(setlistButton, marginParams(-1, dp(52), 0, 0, 0, dp(10)));
+        // Seletor: exibe o nome da playlist após ela ser escolhida.
+        String selectedPlaylistName =
+            selectedSetlistIndex >= 0
+                && selectedSetlistIndex < setlists.size()
+                ? setlists.get(selectedSetlistIndex).name.toUpperCase()
+                : "SELECIONAR PLAYLIST";
 
-        Button editSetlistButton = createOutlineButton("✏ EDITAR ESTA PLAYLIST");
+        Button setlistButton = createOutlineButton(
+            selectedPlaylistName + " ▾"
+        );
+        setlistButton.setTextSize(18);
+        setlistButton.setOnClickListener(
+            v -> showSetlistSelector(setlistButton)
+        );
+
+        content.addView(
+            setlistButton,
+            marginParams(-1, dp(50), 0, 0, 0, dp(8))
+        );
+
+        // Acesso à tela de edição: adicionar/remover/reordenar cenas.
+        Button editSetlistButton = createOutlineButton(
+            "✏ EDITAR ESTA PLAYLIST"
+        );
+        editSetlistButton.setTextSize(11);
+
         editSetlistButton.setOnClickListener(v -> {
-            if (selectedSetlistIndex < 0 || selectedSetlistIndex >= setlists.size()) {
-                Toast.makeText(this, "Selecione uma playlist primeiro.", Toast.LENGTH_SHORT).show();
+            if (selectedSetlistIndex < 0
+                || selectedSetlistIndex >= setlists.size()) {
+                Toast.makeText(
+                    this,
+                    "Selecione uma playlist primeiro.",
+                    Toast.LENGTH_SHORT
+                ).show();
                 return;
             }
+
             showEditSetlistScreen();
         });
-        content.addView(editSetlistButton, marginParams(-1, dp(42), 0, 0, 0, dp(10)));
 
-        // Status MIDI
+        content.addView(
+            editSetlistButton,
+            marginParams(-1, dp(40), 0, 0, 0, dp(10))
+        );
+
+        // Status MIDI.
         LinearLayout midi = new LinearLayout(this);
         midi.setGravity(Gravity.CENTER_VERTICAL);
         midi.setPadding(dp(12), dp(8), dp(12), dp(8));
         midi.setBackground(createPanelBackground(
-                palette.panelBackground,
-                palette.secondaryAccentDark,
-                14
+            palette.panelBackground,
+            palette.secondaryAccentDark,
+            14
         ));
 
         TextView dot = createSecondaryText("●", 15, false);
+
         TextView status = createSecondaryText(
-                selectedMidiDeviceInfo == null
-                        ? "MIDI: aguardando USB-OTG"
-                        : "MIDI: " + getMidiDeviceName(selectedMidiDeviceInfo),
-                12,
-                true
+            selectedMidiDeviceInfo == null
+                ? "MIDI: aguardando USB-OTG"
+                : "MIDI: " + getMidiDeviceName(selectedMidiDeviceInfo),
+            12,
+            true
         );
         status.setPadding(dp(8), 0, 0, 0);
 
         midi.addView(dot);
         midi.addView(status);
-        content.addView(midi, marginParams(-1, -2, 0, 0, 0, dp(10)));
 
-        // Lista de músicas da setlist
-        if (selectedSetlistIndex >= 0 && selectedSetlistIndex < setlists.size()) {
+        content.addView(
+            midi,
+            marginParams(-1, -2, 0, 0, 0, dp(10))
+        );
+
+        // Lista de cenas da playlist.
+        if (selectedSetlistIndex >= 0
+            && selectedSetlistIndex < setlists.size()) {
+
             Setlist setlist = setlists.get(selectedSetlistIndex);
 
-            ScrollView scrollMusicas = new ScrollView(this);
-            scrollMusicas.setFillViewport(false);
-            scrollMusicas.setVerticalScrollBarEnabled(true);
+            ScrollView scrollScenes = new ScrollView(this);
+            scrollScenes.setFillViewport(false);
+            scrollScenes.setVerticalScrollBarEnabled(true);
 
-            LinearLayout musicasList = new LinearLayout(this);
-            musicasList.setOrientation(LinearLayout.VERTICAL);
+            LinearLayout sceneList = new LinearLayout(this);
+            sceneList.setOrientation(LinearLayout.VERTICAL);
 
             for (int i = 0; i < setlist.bankIndices.size(); i++) {
                 final int bankIndex = setlist.bankIndices.get(i);
-                final int musicIndex = i;
+                final int sceneIndex = i;
 
                 if (bankIndex < 0 || bankIndex >= banks.size()) {
                     continue;
@@ -556,88 +619,143 @@ public class MainActivity extends Activity {
 
                 Bank bank = banks.get(bankIndex);
 
-                Button musicButton = createOutlineButton(bank.name.toUpperCase());
-                musicButton.setOnClickListener(v -> {
-                    setlist.currentMusicIndex = musicIndex;
+                Button sceneButton = createOutlineButton(
+                    bank.name.toUpperCase()
+                );
+
+                sceneButton.setOnClickListener(v -> {
+                    setlist.currentMusicIndex = sceneIndex;
                     selectedBankIndex = bankIndex;
                     activePresetIndex = -1;
+
                     selectSongScene(bank);
                     buildSetlistScreen();
                 });
 
                 if (i == setlist.currentMusicIndex) {
-                    musicButton.setBackground(createRoundedBackground(
+                    sceneButton.setBackground(
+                        createRoundedBackground(
                             palette.accent,
                             palette.accentBright,
                             18,
                             2
-                    ));
-                    musicButton.setTextColor(palette.textDark);
+                        )
+                    );
+                    sceneButton.setTextColor(palette.textDark);
                 }
 
-                musicasList.addView(
-                        musicButton,
-                        marginParams(-1, dp(52), 0, 0, 0, dp(8))
+                sceneList.addView(
+                    sceneButton,
+                    marginParams(-1, dp(48), 0, 0, 0, dp(7))
                 );
             }
 
-            scrollMusicas.addView(
-                    musicasList,
-                    new ScrollView.LayoutParams(
-                            ScrollView.LayoutParams.MATCH_PARENT,
-                            ScrollView.LayoutParams.WRAP_CONTENT
-                    )
+            scrollScenes.addView(
+                sceneList,
+                new ScrollView.LayoutParams(
+                    ScrollView.LayoutParams.MATCH_PARENT,
+                    ScrollView.LayoutParams.WRAP_CONTENT
+                )
             );
 
             content.addView(
-                    scrollMusicas,
-                    new LinearLayout.LayoutParams(-1, 0, 1)
+                scrollScenes,
+                new LinearLayout.LayoutParams(-1, 0, 1)
+            );
+        } else {
+            TextView emptyPlaylist = createSecondaryText(
+                "Selecione uma playlist para ver as cenas.",
+                14,
+                false
+            );
+            emptyPlaylist.setGravity(Gravity.CENTER);
+            emptyPlaylist.setPadding(dp(16), dp(24), dp(16), dp(24));
+            emptyPlaylist.setBackground(
+                createPanelBackground(
+                    palette.panelBackground,
+                    palette.border,
+                    14
+                )
             );
 
-            // Pads de presets
-            Bank selectedBank = null;
-
-            if (selectedBankIndex >= 0 && selectedBankIndex < banks.size()) {
-                selectedBank = banks.get(selectedBankIndex);
-            }
-
-            if (selectedBank != null && activePresetIndex >= 0 && activePresetIndex < selectedBank.presets.size()) {
-                LinearLayout pads = new LinearLayout(this);
-                pads.setOrientation(LinearLayout.VERTICAL);
-                addPerformancePads(pads);
-                content.addView(pads, new LinearLayout.LayoutParams(-1, 0, 1));
-            }
+            content.addView(
+                emptyPlaylist,
+                new LinearLayout.LayoutParams(-1, 0, 1)
+            );
         }
 
-        // Botão para entrar em Performance com esta setlist
-        Button btnPerformance = createPrimaryActionButton("▶ MODO PERFORMANCE");
+        // Abre o Modo Performance usando a primeira cena da playlist.
+        Button btnPerformance = createPrimaryActionButton(
+            "▶ MODO PERFORMANCE"
+        );
+
         btnPerformance.setOnClickListener(v -> {
-            if (selectedSetlistIndex >= 0 && selectedSetlistIndex < setlists.size()) {
-                Setlist setlist = setlists.get(selectedSetlistIndex);
-                if (!setlist.bankIndices.isEmpty()) {
-                    setlist.currentMusicIndex = 0;
-                    int firstBankIdx = setlist.bankIndices.get(0);
-                    if (firstBankIdx >= 0 && firstBankIdx < banks.size()) {
-                        selectedBankIndex = firstBankIdx;
-                        activePresetIndex = -1;
-                        selectSongScene(banks.get(selectedBankIndex));
-                    }
-                }
-                performanceFromSetlist = true;
-                performanceMode = true;
-                buildPerformanceScreen();
+            if (selectedSetlistIndex < 0
+                || selectedSetlistIndex >= setlists.size()) {
+                Toast.makeText(
+                    this,
+                    "Selecione uma playlist primeiro.",
+                    Toast.LENGTH_SHORT
+                ).show();
+                return;
             }
+
+            Setlist setlist = setlists.get(selectedSetlistIndex);
+
+            if (setlist.bankIndices.isEmpty()) {
+                Toast.makeText(
+                    this,
+                    "Adicione pelo menos uma cena à playlist.",
+                    Toast.LENGTH_SHORT
+                ).show();
+                return;
+            }
+
+            setlist.currentMusicIndex = 0;
+
+            int firstBankIndex = setlist.bankIndices.get(0);
+
+            if (firstBankIndex < 0 || firstBankIndex >= banks.size()) {
+                Toast.makeText(
+                    this,
+                    "A primeira cena da playlist não está disponível.",
+                    Toast.LENGTH_SHORT
+                ).show();
+                return;
+            }
+
+            selectedBankIndex = firstBankIndex;
+            activePresetIndex = -1;
+
+            selectSongScene(banks.get(selectedBankIndex));
+
+            performanceFromSetlist = true;
+            performanceMode = true;
+
+            buildPerformanceScreen();
         });
-        content.addView(btnPerformance, marginParams(-1, dp(42), 0, 0, 0, dp(10)));
+
+        content.addView(
+            btnPerformance,
+            marginParams(-1, dp(42), 0, 0, 0, dp(10))
+        );
 
         Button back = createOutlineButton("← VOLTAR PARA EDIÇÃO");
         back.setOnClickListener(v -> {
             setlistMode = false;
             showEditorMode();
         });
-        content.addView(back, marginParams(-1, dp(50), 0, dp(10), 0, 0));
 
-        root.addView(content, new FrameLayout.LayoutParams(-1, -1));
+        content.addView(
+            back,
+            marginParams(-1, dp(50), 0, dp(10), 0, 0)
+        );
+
+        root.addView(
+            content,
+            new FrameLayout.LayoutParams(-1, -1)
+        );
+
         setContentView(root);
     }
 
@@ -661,12 +779,12 @@ public class MainActivity extends Activity {
         TextView setName = createAccentText(setlist.name.toUpperCase(), 18, true);
         content.addView(setName, marginParams(-1, -2, 0, dp(4), 0, dp(10)));
 
-        // Botão para adicionar música
-        Button addMusicButton = createPrimaryActionButton("+ ADICIONAR MÚSICA");
+        // Botão para adicionar cena
+        Button addMusicButton = createPrimaryActionButton("+ ADICIONAR CENA");
         addMusicButton.setOnClickListener(v -> showAddMusicToSetlistDialog(setlist));
         content.addView(addMusicButton, marginParams(-1, dp(42), 0, 0, 0, dp(10)));
 
-        // Lista rolável de músicas da setlist
+        // Lista rolável de cenas da setlist
         ScrollView scrollMusicas = new ScrollView(this);
         scrollMusicas.setFillViewport(false);
         scrollMusicas.setVerticalScrollBarEnabled(true);
@@ -736,12 +854,12 @@ public class MainActivity extends Activity {
 
     private void showAddMusicToSetlistDialog(Setlist setlist) {
         if (banks.isEmpty()) {
-            Toast.makeText(this, "Crie pelo menos uma música primeiro.", Toast.LENGTH_LONG).show();
+            Toast.makeText(this, "Crie pelo menos uma cena primeiro.", Toast.LENGTH_LONG).show();
             return;
         }
 
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        builder.setTitle("ADICIONAR MÚSICA À PLAYLIST");
+        builder.setTitle("ADICIONAR CENA À PLAYLIST");
 
         String[] musicNames = new String[banks.size()];
         for (int i = 0; i < banks.size(); i++) {
@@ -752,7 +870,7 @@ public class MainActivity extends Activity {
             setlist.addBank(which);
             saveSetlists();
             showEditSetlistScreen();
-            Toast.makeText(this, "Música adicionada: " + banks.get(which).name, Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "Cena adicionada: " + banks.get(which).name, Toast.LENGTH_SHORT).show();
         });
 
         builder.setNegativeButton("CANCELAR", null);
@@ -761,23 +879,45 @@ public class MainActivity extends Activity {
 
     private void addThemeSelector(LinearLayout parent) {
         LinearLayout row = new LinearLayout(this);
-        row.setPadding(0, 0, 0, dp(8));
-        
-        Button standard = createThemeButton("STANDARD", THEME_STANDARD);
-        Button amber = createThemeButton("ÂMBAR", THEME_AMBER);
-        Button matrix = createThemeButton("MATRIX", THEME_MATRIX);
-        Button neon = createThemeButton("NEON", THEME_NEON);
-        
-        standard.setOnClickListener(v -> selectTheme(THEME_STANDARD));
-        amber.setOnClickListener(v -> selectTheme(THEME_AMBER));
-        matrix.setOnClickListener(v -> selectTheme(THEME_MATRIX));
-        neon.setOnClickListener(v -> selectTheme(THEME_NEON));
-        
-        row.addView(standard, marginParams(0, dp(29), dp(5), 0, dp(5), 0, 1));
-        row.addView(amber, marginParams(0, dp(29), dp(5), 0, dp(5), 0, 1));
-        row.addView(matrix, marginParams(0, dp(29), dp(5), 0, dp(5), 0, 1));
-        row.addView(neon, marginParams(0, dp(29), dp(5), 0, dp(5), 0, 1));
-        
+        row.setOrientation(LinearLayout.HORIZONTAL);
+        row.setPadding(0, 0, 0, dp(12));
+
+        Button white = createThemeButton(
+            "STANDARD WHITE",
+            THEME_STANDARD_WHITE
+        );
+
+        Button dark = createThemeButton(
+            "STANDARD DARK",
+            THEME_STANDARD_DARK
+        );
+
+        white.setOnClickListener(
+            v -> selectTheme(THEME_STANDARD_WHITE)
+        );
+
+        dark.setOnClickListener(
+            v -> selectTheme(THEME_STANDARD_DARK)
+        );
+
+        row.addView(
+            white,
+            new LinearLayout.LayoutParams(0, dp(34), 1)
+        );
+
+        row.addView(
+            dark,
+            marginParams(
+                0,
+                dp(34),
+                dp(8),
+                0,
+                0,
+                0,
+                1
+            )
+        );
+
         parent.addView(row);
     }
 
@@ -818,31 +958,19 @@ public class MainActivity extends Activity {
     }
 
     private int getThemeAccent(int id) {
-        return id == THEME_STANDARD ? Color.rgb(255, 102, 0)
-            : id == THEME_MATRIX ? Color.rgb(0, 232, 58)
-            : id == THEME_NEON ? Color.rgb(222, 40, 157)
-            : Color.rgb(255, 176, 0);
+        return Color.rgb(255, 92, 0);
     }
 
     private int getThemeAccentBright(int id) {
-        return id == THEME_STANDARD ? Color.rgb(255, 153, 51)
-            : id == THEME_MATRIX ? Color.rgb(131, 255, 155)
-            : id == THEME_NEON ? Color.rgb(255, 119, 210)
-            : Color.rgb(255, 214, 100);
+        return Color.rgb(255, 135, 55);
     }
 
     private int getThemeAccentDark(int id) {
-        return id == THEME_STANDARD ? Color.rgb(128, 51, 0)
-            : id == THEME_MATRIX ? Color.rgb(10, 122, 43)
-            : id == THEME_NEON ? Color.rgb(118, 25, 101)
-            : Color.rgb(173, 112, 0);
+        return Color.rgb(205, 55, 0);
     }
 
     private int getThemeTextDark(int id) {
-        return id == THEME_STANDARD ? Color.rgb(25, 15, 5)
-            : id == THEME_MATRIX ? Color.rgb(3, 22, 7)
-            : id == THEME_NEON ? Color.rgb(21, 6, 23)
-            : Color.rgb(20, 15, 4);
+        return Color.WHITE;
     }
 
     private void addEditorHeader(LinearLayout parent) {
@@ -967,7 +1095,7 @@ public class MainActivity extends Activity {
         card.addView(subtitle, marginParams(-1, -2, 0, 0, 0, dp(10)));
 
         // Botão 1: Playlist.
-        Button playlistButton = createPrimaryActionButton("☰ PLAYLIST");
+        Button playlistButton = createPrimaryActionButton("⚙ GERENCIAR PLAYLISTS");
         playlistButton.setTextSize(11);
         playlistButton.setSingleLine(true);
 
@@ -985,13 +1113,13 @@ public class MainActivity extends Activity {
 
         // Botão 2: Gerenciar Playlist.
         Button managePlaylistButton =
-            createPrimaryActionButton("⚙ GERENCIAR PLAYLIST");
+            createPrimaryActionButton("+ CRIAR PLAYLIST");
         managePlaylistButton.setTextSize(11);
         managePlaylistButton.setSingleLine(true);
 
         // Impede que o clique no botão também abra o modo performance.
         managePlaylistButton.setOnClickListener(
-            v -> showManageSetlistsDialog()
+            v -> showCreatePlaylistDialog()
         );
 
         card.addView(
@@ -1011,13 +1139,13 @@ public class MainActivity extends Activity {
         card.setPadding(dp(18), dp(10), dp(18), dp(8));
         card.setBackground(createPanelBackground(palette.panelBackground, palette.border, 14));
         
-        // Linha principal: MÚSICAS
+        // Linha principal: CENAS
         LinearLayout topRow = new LinearLayout(this);
         topRow.setOrientation(LinearLayout.HORIZONTAL);
         topRow.setGravity(Gravity.CENTER_VERTICAL);
         
-        // MÚSICAS (grande, laranja)
-        TextView musicasText = createPrimaryText("MÚSICAS", 18, true);
+        // CENAS (grande, laranja)
+        TextView musicasText = createPrimaryText("CENAS", 18, true);
         musicasText.setTextColor(palette.accent);
         topRow.addView(musicasText);
         
@@ -1042,7 +1170,7 @@ public class MainActivity extends Activity {
         // Botões
         LinearLayout buttons = new LinearLayout(this);
         
-        Button add = createPrimaryActionButton("+ NOVA MÚSICA");
+        Button add = createPrimaryActionButton("+ NOVA CENA");
         add.setOnClickListener(v -> showCreateBankDialog());
         
         btnDeleteBank = createOutlineButton("EXCLUIR");
@@ -1065,7 +1193,7 @@ public class MainActivity extends Activity {
         });
         parent.addView(btnNewPreset, marginParams(-1, dp(37), 0, 0, 0, dp(10)));
 
-        tvEmptyPresets = createSecondaryText("NENHUM PRESET NESTA MÚSICA", 11, true);
+        tvEmptyPresets = createSecondaryText("NENHUM PRESET NESTA CENA", 11, true);
         tvEmptyPresets.setGravity(Gravity.CENTER);
         tvEmptyPresets.setPadding(dp(16), dp(24), dp(16), dp(24));
         tvEmptyPresets.setBackground(createPanelBackground(palette.panelBackground, palette.border, 14));
@@ -1081,7 +1209,7 @@ public class MainActivity extends Activity {
             return banks.get(selectedBankIndex).name;
         }
 
-        return "SEM MÚSICA";
+        return "SEM CENA";
     }
 
     private Button createSongSelectorButton() {
@@ -1237,7 +1365,7 @@ public class MainActivity extends Activity {
                 popup.dismiss();
             });
 
-            Button deleteButton = createOutlineButton("EXCLUIR");
+            Button deleteButton = createOutlineButton("X");
             deleteButton.setOnClickListener(v -> {
                 new AlertDialog.Builder(this)
                         .setTitle("Excluir Playlist")
@@ -1251,10 +1379,23 @@ public class MainActivity extends Activity {
                         .show();
             });
 
-            row.addView(button, new LinearLayout.LayoutParams(0, dp(52), 1));
-            row.addView(deleteButton, marginParams(dp(52), dp(52), dp(8), 0, 0, 0));
+            deleteButton.setTextSize(9);
+            deleteButton.setPadding(dp(4), 0, dp(4), 0);
 
-            content.addView(row, marginParams(-1, dp(60), 0, 0, 0, dp(4)));
+            row.addView(
+                button,
+                new LinearLayout.LayoutParams(0, dp(42), 1)
+            );
+
+            row.addView(
+                deleteButton,
+                marginParams(dp(42), dp(42), dp(6), 0, 0, 0)
+            );
+
+            content.addView(
+                row,
+                marginParams(-1, dp(48), 0, 0, 0, dp(4))
+            );
         }
 
         ScrollView scroll = new ScrollView(this);
@@ -1286,6 +1427,63 @@ public class MainActivity extends Activity {
         popup.setOutsideTouchable(true);
 
         popup.showAsDropDown(anchor, 0, dp(4));
+    }
+
+    private void showCreatePlaylistDialog() {
+        LinearLayout form = new LinearLayout(this);
+        form.setOrientation(LinearLayout.VERTICAL);
+        form.setPadding(dp(18), dp(8), dp(18), dp(14));
+
+        TextView label = createDialogLabel("NOME DA PLAYLIST");
+        form.addView(label);
+
+        EditText inputName = createThemeEditText(
+            "Ex.: Madame 19/08"
+        );
+        form.addView(inputName);
+
+        AlertDialog dialog = new AlertDialog.Builder(this)
+            .setTitle("CRIAR PLAYLIST")
+            .setView(form)
+            .setNegativeButton("CANCELAR", null)
+            .setPositiveButton("CRIAR", null)
+            .create();
+
+        dialog.setOnShowListener(v -> {
+            Button createButton =
+                dialog.getButton(AlertDialog.BUTTON_POSITIVE);
+
+            createButton.setOnClickListener(view -> {
+                String name =
+                    inputName.getText().toString().trim();
+
+                if (name.isEmpty()) {
+                    inputName.setError("Informe um nome.");
+                    inputName.requestFocus();
+                    return;
+                }
+
+                Setlist playlist = new Setlist(name);
+                setlists.add(playlist);
+                saveSetlists();
+
+                selectedSetlistIndex = setlists.size() - 1;
+
+                Toast.makeText(
+                    this,
+                    "Playlist criada: " + name,
+                    Toast.LENGTH_SHORT
+                ).show();
+
+                dialog.dismiss();
+
+                // Leva à Playlist Mode já com a nova playlist selecionada.
+                setlistMode = true;
+                buildSetlistScreen();
+            });
+        });
+
+        dialog.show();
     }
 
     private void showManageSetlistsDialog() {
@@ -1822,9 +2020,9 @@ public class MainActivity extends Activity {
         );
         form.addView(information, marginParams(-1, -2, 0, 0, 0, dp(14)));
 
-        form.addView(createDialogLabel("NOME DA MÚSICA"));
+        form.addView(createDialogLabel("NOME DA CENA"));
 
-        EditText inputName = createThemeEditText("Nome da música");
+        EditText inputName = createThemeEditText("Nome da cena");
         inputName.setText(keyboardSceneName);
         inputName.setSelectAllOnFocus(false);
         form.addView(inputName);
@@ -1900,7 +2098,7 @@ public class MainActivity extends Activity {
         form.setOrientation(LinearLayout.VERTICAL);
         form.setPadding(dp(18), dp(8), dp(18), dp(4));
 
-        form.addView(createDialogLabel("NOME DA MÚSICA"));
+        form.addView(createDialogLabel("NOME DA CENA"));
         EditText inputName = createThemeEditText("Ex.: Enjoy the Silence");
         form.addView(inputName);
 
@@ -1914,7 +2112,7 @@ public class MainActivity extends Activity {
         form.addView(inputScene);
 
         AlertDialog dialog = new AlertDialog.Builder(this)
-                .setTitle("NOVA MÚSICA")
+                .setTitle("NOVA CENA")
                 .setView(form)
                 .setNegativeButton("CANCELAR", null)
                 .setPositiveButton("CRIAR", null)
@@ -1966,8 +2164,8 @@ public class MainActivity extends Activity {
         }
 
         new AlertDialog.Builder(this)
-                .setTitle("EXCLUIR MÚSICA?")
-                .setMessage("A música e seus presets serão apagados.")
+                .setTitle("EXCLUIR CENA?")
+                .setMessage("A cena e seus presets serão apagados.")
                 .setNegativeButton("CANCELAR", null)
                 .setPositiveButton("EXCLUIR", (dialog, which) -> {
                     banks.remove(selectedBankIndex);
@@ -1986,7 +2184,7 @@ public class MainActivity extends Activity {
 
         AlertDialog dialog = new AlertDialog.Builder(this)
                 .setTitle("EXCLUIR PRESET?")
-                .setMessage("O preset \"" + preset.name + "\" será apagado desta música.")
+                .setMessage("O preset \"" + preset.name + "\" será apagado desta cena.")
                 .setNegativeButton("CANCELAR", null)
                 .setPositiveButton("EXCLUIR", null)
                 .create();
@@ -2147,7 +2345,7 @@ public class MainActivity extends Activity {
 
     private void sendUserScene(int sceneNumber) {
         if (sceneNumber < 1 || sceneNumber > 128) {
-            Toast.makeText(this, "Scene inválida no app: " + sceneNumber, Toast.LENGTH_LONG).show();
+            Toast.makeText(this, "Cena inválida no app: " + sceneNumber, Toast.LENGTH_LONG).show();
             return;
         }
 
@@ -2160,7 +2358,7 @@ public class MainActivity extends Activity {
             openMidiDeviceIfNeeded();
             Toast.makeText(
                     this,
-                    "MIDI reconectando. Troque a música novamente em 1 segundo.",
+                    "MIDI reconectando. Troque a cena novamente em 1 segundo.",
                     Toast.LENGTH_LONG
             ).show();
             return;
@@ -2193,7 +2391,7 @@ public class MainActivity extends Activity {
 
             Toast.makeText(
                     this,
-                    "Conexão MIDI caiu e está sendo reaberta. Troque a música novamente em 1 segundo.",
+                    "Conexão MIDI caiu e está sendo reaberta. Troque a cena novamente em 1 segundo.",
                     Toast.LENGTH_LONG
             ).show();
         }
@@ -2227,15 +2425,75 @@ public class MainActivity extends Activity {
         }
 
         if (names.isEmpty()) {
-            names.add("Nenhuma música criada");
+            names.add("Nenhuma cena criada");
         }
 
-        ArrayAdapter<String> adapter = new ArrayAdapter<>(
-                this,
-                android.R.layout.simple_spinner_item,
-                names
-        );
-        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        ArrayAdapter<String> adapter = new ArrayAdapter<String>(
+            this,
+            android.R.layout.simple_spinner_item,
+            names
+        ) {
+            @Override
+            public View getView(
+                int position,
+                View convertView,
+                android.view.ViewGroup parent
+            ) {
+                TextView textView = (TextView) super.getView(
+                    position,
+                    convertView,
+                    parent
+                );
+
+                boolean darkTheme =
+                    selectedTheme == THEME_STANDARD_DARK;
+
+                // Spinner fechado.
+                textView.setTextColor(
+                    darkTheme ? Color.WHITE : Color.BLACK
+                );
+                textView.setTextSize(16);
+                textView.setTypeface(Typeface.DEFAULT_BOLD);
+                textView.setGravity(Gravity.CENTER);
+                textView.setPadding(dp(12), 0, dp(12), 0);
+
+                return textView;
+            }
+
+            @Override
+            public View getDropDownView(
+                int position,
+                View convertView,
+                android.view.ViewGroup parent
+            ) {
+                TextView textView = (TextView) super.getDropDownView(
+                    position,
+                    convertView,
+                    parent
+                );
+
+                boolean darkTheme =
+                    selectedTheme == THEME_STANDARD_DARK;
+
+                // Itens da lista aberta.
+                textView.setTextColor(
+                    darkTheme ? Color.WHITE : Color.BLACK
+                );
+                textView.setTextSize(16);
+                textView.setTypeface(Typeface.DEFAULT_BOLD);
+                textView.setGravity(Gravity.CENTER);
+                textView.setPadding(dp(16), dp(12), dp(16), dp(12));
+
+                textView.setBackgroundColor(
+                    darkTheme
+                        ? Color.rgb(18, 18, 18)
+                        : Color.WHITE
+                );
+
+                return textView;
+            }
+        };
+
         spinnerBanks.setAdapter(adapter);
 
         spinnerBanks.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
@@ -2285,7 +2543,7 @@ public class MainActivity extends Activity {
         btnDeleteBank.setEnabled(selected);
 
         if (!selected) {
-            tvEmptyPresets.setText("Crie uma música para começar.");
+            tvEmptyPresets.setText("Crie uma cena para começar.");
             tvEmptyPresets.setVisibility(View.VISIBLE);
             return;
         }
@@ -2459,7 +2717,7 @@ public class MainActivity extends Activity {
 
                 Bank bank = new Bank(
                         object.optString("id", UUID.randomUUID().toString()),
-                        object.optString("name", "Música sem nome"),
+                        object.optString("name", "Cena sem nome"),
                         scene
                 );
 
@@ -2814,8 +3072,25 @@ public class MainActivity extends Activity {
         return drawable;
     }
 
-    private GradientDrawable createPanelBackground(int fill, int stroke, int radius) {
-        return createRoundedBackground(fill, stroke, radius, 1);
+    private GradientDrawable createPanelBackground(
+        int fill,
+        int stroke,
+        int radius
+    ) {
+        GradientDrawable drawable = new GradientDrawable();
+
+        int transparentFill = Color.argb(
+            175,
+            Color.red(fill),
+            Color.green(fill),
+            Color.blue(fill)
+        );
+
+        drawable.setColor(transparentFill);
+        drawable.setCornerRadius(dp(radius));
+        drawable.setStroke(dp(1), stroke);
+
+        return drawable;
     }
 
     private GradientDrawable createRoundedBackground(int fill, int stroke, int radius, int width) {
