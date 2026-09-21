@@ -170,7 +170,7 @@ public class MainActivity extends Activity {
             palette = new ThemePalette(
                 R.drawable.background_roland,
                 Color.rgb(50, 50, 50),
-                Color.argb(180, 0, 0, 0),       // screenOverlay: preto translúcido
+                Color.argb(50, 0, 0, 0),       // screenOverlay: preto translúcido
                 Color.argb(180, 25, 25, 25),    // panelBackground: cinza escuro
                 Color.argb(200, 40, 40, 40),    // panelStrong: cinza médio
                 Color.argb(190, 30, 30, 30),    // padBackground: cinza
