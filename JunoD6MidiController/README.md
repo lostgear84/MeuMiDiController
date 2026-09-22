@@ -71,6 +71,35 @@ As cenas, presets e playlists são armazenados localmente no dispositivo. O apli
 - Android MIDI API
 - Gradle
 
+## Capturas de tela
+
+### Ícone e splash
+
+![Ícone do app](screenshots/01-icone.png)
+
+![Splash tema claro](screenshots/02-splash-white.png)
+![Splash tema escuro](screenshots/03-splash-dark.png)
+
+### Tela principal
+
+![Tela principal – tema claro](screenshots/04-tela-principal-white.png)
+![Tela principal – tema escuro](screenshots/05-tela-principal-dark.png)
+
+### Leitura de cena atual
+
+![Pop-up “Ler cena atual”](screenshots/06-popup-ler-cena.png)
+
+### Playlist Mode e Performance Mode
+
+![Playlist Mode](screenshots/07-playlist-mode.png)
+![Performance Mode](screenshots/08-performance-mode.png)
+
+### Criação e edição
+
+![Pop-up “Criar playlist”](screenshots/09-popup-criar-playlist.png)
+![Pop-up “Nova cena”](screenshots/10-popup-nova-cena.png)
+![Pop-up “Editar preset”](screenshots/11-popup-editar-preset.png)
+
 ## Aviso sobre marcas
 
 Roland e JUNO-D são marcas pertencentes aos seus respectivos proprietários. Este projeto é independente e não possui vínculo oficial com a Roland Corporation.
