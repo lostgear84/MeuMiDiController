@@ -1,4 +1,4 @@
-package com.example.junod6midicontroller;
+package com.erickwmiguel.livestage.junod;
 
 import android.app.Activity;
 import android.app.AlertDialog;
@@ -999,7 +999,7 @@ public class MainActivity extends Activity {
         junoBlock.setOrientation(LinearLayout.VERTICAL);
         
         // JUNO-D6 (grande)
-        TextView junoText = createPrimaryText("JUNO-D6", 14, true);
+        TextView junoText = createPrimaryText("JUNO-D", 14, true);
         junoText.setTextColor(palette.textPrimary);
         junoBlock.addView(junoText);
         
@@ -1015,7 +1015,7 @@ public class MainActivity extends Activity {
         
         // Descrição
         TextView description = createSecondaryText(
-            "GERENCIE SUAS CENAS, CRIE PRESETS MULTIPARTS E ORGANIZE PLAYLISTS NO JUNO-D6",
+            "GERENCIE SUAS CENAS, CRIE PRESETS MULTIPARTS E ORGANIZE PLAYLISTS NO JUNO-D",
             11,
             true
         );

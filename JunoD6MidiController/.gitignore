@@ -32,3 +32,8 @@ captures/
 # OS
 .DS_Store
 Thumbs.db
+
+# Signing credentials
+key.properties
+*.keystore
+*.jks
