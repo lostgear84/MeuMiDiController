@@ -1,12 +1,16 @@
-# Marca:          Roland LiveStage
-# Edição/modelo:  JUNO-D
-# Nome exibido:   LiveStage
-# Nome na loja:   Roland LiveStage | JUNO-D
+# Roland LiveStage | JUNO-D
 
 Aplicativo Android para organização e controle de cenas, presets de Parts e playlists para performance ao vivo com o Roland JUNO-D via USB-MIDI.
 
 > Projeto independente, desenvolvido por Erick W. Miguel.  
 > Não é afiliado, patrocinado ou endossado pela Roland Corporation.
+
+## Funciona 100% offline
+
+- Não requer internet, conta de usuário ou servidor remoto.
+- Todos os dados (cenas, presets e playlists) são armazenados localmente no dispositivo.
+- Ideal para uso em **modo avião** no palco, evitando notificações, chamadas e distrações.
+- Basta conectar o JUNO-D via USB-OTG e usar o app normalmente, mesmo sem rede.
 
 ## Recursos
 
