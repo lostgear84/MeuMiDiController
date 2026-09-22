@@ -985,7 +985,7 @@ public class MainActivity extends Activity {
         topRow.setGravity(Gravity.CENTER_VERTICAL);
         
         // ROLAND
-        TextView rolandText = createPrimaryText("ROLAND", 36, true);
+        TextView rolandText = createPrimaryText("LiveStage", 36, true);
         rolandText.setTextColor(palette.accent);
         topRow.addView(rolandText);
         
