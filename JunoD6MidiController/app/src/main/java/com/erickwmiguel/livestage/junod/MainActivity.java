@@ -7,6 +7,7 @@ import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.graphics.Typeface;
 import android.graphics.drawable.GradientDrawable;
+import android.graphics.Rect;
 import android.media.midi.MidiDevice;
 import android.media.midi.MidiDeviceInfo;
 import android.media.midi.MidiInputPort;
@@ -20,6 +21,7 @@ import android.text.InputType;
 import android.view.Gravity;
 import android.view.View;
 import android.view.Window;
+import android.view.WindowInsets;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
@@ -306,8 +308,28 @@ public class MainActivity extends Activity {
         View overlay = new View(this);
         overlay.setBackgroundColor(palette.screenOverlay);
 
-        root.addView(background, new FrameLayout.LayoutParams(-1, -1));
-        root.addView(overlay, new FrameLayout.LayoutParams(-1, -1));
+        root.addView(
+                background,
+                new FrameLayout.LayoutParams(-1, -1)
+        );
+
+        root.addView(
+                overlay,
+                new FrameLayout.LayoutParams(-1, -1)
+        );
+
+        root.setOnApplyWindowInsetsListener((view, insets) -> {
+            int left = insets.getSystemWindowInsetLeft();
+            int top = insets.getSystemWindowInsetTop();
+            int right = insets.getSystemWindowInsetRight();
+            int bottom = insets.getSystemWindowInsetBottom();
+
+            view.setPadding(left, top, right, bottom);
+
+            return insets;
+        });
+
+        root.requestApplyInsets();
 
         return root;
     }
@@ -411,66 +433,98 @@ public class MainActivity extends Activity {
             setlistNameBtn.setOnClickListener(v -> showSetlistSelectorInPerformance(v));
             content.addView(setlistNameBtn, marginParams(-1, dp(52), 0, 0, 0, dp(10)));
 
-            // Indicador de cena atual
-            if (currentSetlist.currentMusicIndex >= 0 && 
-                currentSetlist.currentMusicIndex < currentSetlist.bankIndices.size()) {
-                
-                int bankIdx = currentSetlist.bankIndices.get(currentSetlist.currentMusicIndex);
-                if (bankIdx >= 0 && bankIdx < banks.size()) {
-                    Bank currentBank = banks.get(bankIdx);
-                    
-                    TextView songInfo = createAccentText(
-                        "CENA " + (currentSetlist.currentMusicIndex + 1) + "/" + 
-                        currentSetlist.bankIndices.size() + ": " + currentBank.name.toUpperCase(),
-                        13,
-                        true
+            // Indicador de cena atual e navegação da playlist.
+            if (currentSetlist.currentMusicIndex >= 0
+                    && currentSetlist.currentMusicIndex < currentSetlist.bankIds.size()) {
+
+                String currentBankId = currentSetlist.bankIds.get(
+                        currentSetlist.currentMusicIndex
+                );
+
+                Bank currentBank = findBankById(currentBankId);
+
+                if (currentBank != null) {
+                    TextView currentSceneLabel = createSecondaryText(
+                            (currentSetlist.currentMusicIndex + 1)
+                                    + "/"
+                                    + currentSetlist.bankIds.size()
+                                    + ": "
+                                    + currentBank.name.toUpperCase(),
+                            13,
+                            true
                     );
-                    songInfo.setGravity(Gravity.CENTER);
-                    content.addView(songInfo, marginParams(-1, -2, 0, dp(0), 0, dp(10)));
+
+                    currentSceneLabel.setGravity(Gravity.CENTER);
+                    currentSceneLabel.setPadding(0, dp(6), 0, dp(8));
+
+                    content.addView(
+                            currentSceneLabel,
+                            marginParams(-1, -2, 0, 0, 0, dp(4))
+                    );
+
+                    LinearLayout navRow = new LinearLayout(this);
+                    navRow.setOrientation(LinearLayout.HORIZONTAL);
+                    navRow.setGravity(Gravity.CENTER);
+
+                    Button prevBtn = createOutlineButton("◀ ANTERIOR");
+                    prevBtn.setOnClickListener(v -> {
+                        if (currentSetlist.currentMusicIndex > 0) {
+                            currentSetlist.currentMusicIndex--;
+
+                            String previousBankId = currentSetlist.bankIds.get(
+                                    currentSetlist.currentMusicIndex
+                            );
+
+                            Bank previousBank = findBankById(previousBankId);
+
+                            if (previousBank != null) {
+                                selectedBankIndex = banks.indexOf(previousBank);
+                                activePresetIndex = -1;
+                                selectSongScene(previousBank);
+                                buildPerformanceScreen();
+                            }
+                        }
+                    });
+
+                    Button nextBtn = createOutlineButton("PRÓXIMA ▶");
+                    nextBtn.setOnClickListener(v -> {
+                        if (currentSetlist.currentMusicIndex
+                                < currentSetlist.bankIds.size() - 1) {
+
+                            currentSetlist.currentMusicIndex++;
+
+                            String nextBankId = currentSetlist.bankIds.get(
+                                    currentSetlist.currentMusicIndex
+                            );
+
+                            Bank nextBank = findBankById(nextBankId);
+
+                            if (nextBank != null) {
+                                selectedBankIndex = banks.indexOf(nextBank);
+                                activePresetIndex = -1;
+                                selectSongScene(nextBank);
+                                buildPerformanceScreen();
+                            }
+                        }
+                    });
+
+                    navRow.addView(
+                            prevBtn,
+                            new LinearLayout.LayoutParams(0, dp(42), 1)
+                    );
+
+                    navRow.addView(
+                            nextBtn,
+                            marginParams(0, dp(42), dp(10), 0, 0, 0, 1)
+                    );
+
+                    content.addView(
+                            navRow,
+                            marginParams(-1, dp(42), 0, 0, 0, dp(10))
+                    );
                 }
             }
-
-            // Botões de navegação ANTERIOR / PRÓXIMA
-            LinearLayout navRow = new LinearLayout(this);
-            navRow.setOrientation(LinearLayout.HORIZONTAL);
-            navRow.setGravity(Gravity.CENTER);
-
-            Button prevBtn = createOutlineButton("◀ ANTERIOR");
-            prevBtn.setOnClickListener(v -> {
-                if (currentSetlist.currentMusicIndex > 0) {
-                    currentSetlist.currentMusicIndex--;
-                    int bIdx = currentSetlist.bankIndices.get(currentSetlist.currentMusicIndex);
-                    if (bIdx >= 0 && bIdx < banks.size()) {
-                        selectedBankIndex = bIdx;
-                        activePresetIndex = -1;
-                        selectSongScene(banks.get(selectedBankIndex));
-                        buildPerformanceScreen();
-                    }
-                }
-            });
-
-            Button nextBtn = createOutlineButton("PRÓXIMA ▶");
-            nextBtn.setOnClickListener(v -> {
-                if (currentSetlist.currentMusicIndex < currentSetlist.bankIndices.size() - 1) {
-                    currentSetlist.currentMusicIndex++;
-                    int bIdx = currentSetlist.bankIndices.get(currentSetlist.currentMusicIndex);
-                    if (bIdx >= 0 && bIdx < banks.size()) {
-                        selectedBankIndex = bIdx;
-                        activePresetIndex = -1;
-                        selectSongScene(banks.get(selectedBankIndex));
-                        buildPerformanceScreen();
-                    }
-                }
-            });
-
-            navRow.addView(prevBtn, new LinearLayout.LayoutParams(0, dp(42), 1));
-            navRow.addView(nextBtn, marginParams(0, dp(42), dp(10), 0, 0, 0, 1));
-            content.addView(navRow, marginParams(-1, dp(42), 0, 0, 0, dp(10)));
         }
-
-        Button song = createSongSelectorButton();
-        song.setOnClickListener(v -> showPerformanceSongSelector(song));
-        content.addView(song, marginParams(-1, dp(52), 0, 0, 0, dp(10)));
 
         LinearLayout midi = new LinearLayout(this);
         midi.setGravity(Gravity.CENTER_VERTICAL);
@@ -609,18 +663,20 @@ public class MainActivity extends Activity {
             LinearLayout sceneList = new LinearLayout(this);
             sceneList.setOrientation(LinearLayout.VERTICAL);
 
-            for (int i = 0; i < setlist.bankIndices.size(); i++) {
-                final int bankIndex = setlist.bankIndices.get(i);
+            for (int i = 0; i < setlist.bankIds.size(); i++) {
+                final String bankId = setlist.bankIds.get(i);
                 final int sceneIndex = i;
 
-                if (bankIndex < 0 || bankIndex >= banks.size()) {
+                Bank bank = findBankById(bankId);
+
+                if (bank == null) {
                     continue;
                 }
 
-                Bank bank = banks.get(bankIndex);
+                final int bankIndex = banks.indexOf(bank);
 
                 Button sceneButton = createOutlineButton(
-                    bank.name.toUpperCase()
+                        bank.name.toUpperCase()
                 );
 
                 sceneButton.setOnClickListener(v -> {
@@ -632,22 +688,23 @@ public class MainActivity extends Activity {
                     buildSetlistScreen();
                 });
 
-                if (i == setlist.currentMusicIndex) {
+                if (sceneIndex == setlist.currentMusicIndex) {
                     sceneButton.setBackground(
-                        createRoundedBackground(
-                            palette.accent,
-                            palette.accentBright,
-                            18,
-                            2
-                        )
+                            createRoundedBackground(
+                                    palette.accent,
+                                    palette.accentBright,
+                                    18,
+                                    2
+                            )
                     );
                     sceneButton.setTextColor(palette.textDark);
                 }
 
                 sceneList.addView(
-                    sceneButton,
-                    marginParams(-1, dp(48), 0, 0, 0, dp(7))
+                        sceneButton,
+                        marginParams(-1, dp(48), 0, 0, 0, dp(7))
                 );
+            
             }
 
             scrollScenes.addView(
@@ -702,32 +759,33 @@ public class MainActivity extends Activity {
 
             Setlist setlist = setlists.get(selectedSetlistIndex);
 
-            if (setlist.bankIndices.isEmpty()) {
+            if (setlist.bankIds.isEmpty()) {
                 Toast.makeText(
-                    this,
-                    "Adicione pelo menos uma cena à playlist.",
-                    Toast.LENGTH_SHORT
+                        this,
+                        "Adicione pelo menos uma cena à playlist.",
+                        Toast.LENGTH_SHORT
                 ).show();
                 return;
             }
 
             setlist.currentMusicIndex = 0;
 
-            int firstBankIndex = setlist.bankIndices.get(0);
+            String firstBankId = setlist.bankIds.get(0);
+            Bank firstBank = findBankById(firstBankId);
 
-            if (firstBankIndex < 0 || firstBankIndex >= banks.size()) {
+            if (firstBank == null) {
                 Toast.makeText(
-                    this,
-                    "A primeira cena da playlist não está disponível.",
-                    Toast.LENGTH_SHORT
+                        this,
+                        "A primeira cena da playlist não está disponível.",
+                        Toast.LENGTH_SHORT
                 ).show();
                 return;
             }
 
-            selectedBankIndex = firstBankIndex;
+            selectedBankIndex = banks.indexOf(firstBank);
             activePresetIndex = -1;
 
-            selectSongScene(banks.get(selectedBankIndex));
+            selectSongScene(firstBank);
 
             performanceFromSetlist = true;
             performanceMode = true;
@@ -792,10 +850,15 @@ public class MainActivity extends Activity {
         LinearLayout musicasList = new LinearLayout(this);
         musicasList.setOrientation(LinearLayout.VERTICAL);
 
-        for (int i = 0; i < setlist.bankIndices.size(); i++) {
-            final int bankIndex = setlist.bankIndices.get(i);
+        for (int i = 0; i < setlist.bankIds.size(); i++) {
+            final String bankId = setlist.bankIds.get(i);
             final int musicIndex = i;
-            Bank bank = banks.get(bankIndex);
+
+            Bank bank = findBankById(bankId);
+
+            if (bank == null) {
+                continue;
+            }
 
             LinearLayout row = new LinearLayout(this);
             row.setOrientation(LinearLayout.HORIZONTAL);
@@ -809,7 +872,7 @@ public class MainActivity extends Activity {
 
             Button upButton = createOutlineButton("▲");
             upButton.setOnClickListener(v -> {
-                setlist.moveBankUp(bankIndex);
+                setlist.moveBankUp(bankId);
                 saveSetlists();
                 showEditSetlistScreen();
             });
@@ -817,7 +880,7 @@ public class MainActivity extends Activity {
 
             Button downButton = createOutlineButton("▼");
             downButton.setOnClickListener(v -> {
-                setlist.moveBankDown(bankIndex);
+                setlist.moveBankDown(bankId);
                 saveSetlists();
                 showEditSetlistScreen();
             });
@@ -825,7 +888,7 @@ public class MainActivity extends Activity {
 
             Button removeButton = createOutlineButton("✕");
             removeButton.setOnClickListener(v -> {
-                setlist.removeBank(bankIndex);
+                setlist.removeBank(bankId);
                 saveSetlists();
                 showEditSetlistScreen();
             });
@@ -867,7 +930,7 @@ public class MainActivity extends Activity {
         }
 
         builder.setItems(musicNames, (dialog, which) -> {
-            setlist.addBank(which);
+            setlist.addBank(banks.get(which).id);
             saveSetlists();
             showEditSetlistScreen();
             Toast.makeText(this, "Cena adicionada: " + banks.get(which).name, Toast.LENGTH_SHORT).show();
@@ -1294,12 +1357,14 @@ public class MainActivity extends Activity {
             button.setOnClickListener(v -> {
                 selectedSetlistIndex = index;
                 setlist.currentMusicIndex = 0;
-                if (!setlist.bankIndices.isEmpty()) {
-                    int firstBankIdx = setlist.bankIndices.get(0);
-                    if (firstBankIdx >= 0 && firstBankIdx < banks.size()) {
-                        selectedBankIndex = firstBankIdx;
+                if (!setlist.bankIds.isEmpty()) {
+                    String firstBankId = setlist.bankIds.get(0);
+                    Bank firstBank = findBankById(firstBankId);
+
+                    if (firstBank != null) {
+                        selectedBankIndex = banks.indexOf(firstBank);
                         activePresetIndex = -1;
-                        selectSongScene(banks.get(selectedBankIndex));
+                        selectSongScene(firstBank);
                     }
                 }
                 performanceFromSetlist = true;
@@ -2761,9 +2826,9 @@ public class MainActivity extends Activity {
                 object.put("name", setlist.name);
 
                 JSONArray musicOrder = new JSONArray();
-                for (int index : setlist.bankIndices) {
-                    if (index >= 0 && index < banks.size()) {
-                        musicOrder.put(banks.get(index).id);
+                for (String bankId : setlist.bankIds) {
+                    if (findBankById(bankId) != null) {
+                        musicOrder.put(bankId);
                     }
                 }
 
@@ -2814,7 +2879,7 @@ public class MainActivity extends Activity {
                             for (Bank bank : banks) {
                                 if (bankId.equals(bank.id)) {
                                     int index = banks.indexOf(bank);
-                                    setlist.addBank(index);
+                                    setlist.addBank(bankId);
                                     break;
                                 }
                             }
@@ -3129,6 +3194,20 @@ public class MainActivity extends Activity {
         );
     }
 
+    private Bank findBankById(String bankId) {
+        if (bankId == null || bankId.isEmpty()) {
+            return null;
+        }
+
+        for (Bank bank : banks) {
+            if (bankId.equals(bank.id)) {
+                return bank;
+            }
+        }
+
+        return null;
+    }
+
     private static class ThemePalette {
         final int backgroundImageResId;
         final int background;
@@ -3240,34 +3319,34 @@ public class MainActivity extends Activity {
 
     private static class Setlist {
         final String name;
-        final List<Integer> bankIndices = new ArrayList<>();
+        final List<String> bankIds = new ArrayList<>();
         int currentMusicIndex = -1;
 
         Setlist(String name) {
             this.name = name;
         }
 
-        void addBank(int index) {
-            if (!bankIndices.contains(index)) {
-                bankIndices.add(index);
+        void addBank(String bankId) {
+            if (bankId != null && !bankId.isEmpty() && !bankIds.contains(bankId)) {
+                bankIds.add(bankId);
             }
         }
 
-        void removeBank(int index) {
-            bankIndices.remove(Integer.valueOf(index));
+        void removeBank(String bankId) {
+            bankIds.remove(bankId);
         }
 
-        void moveBankUp(int index) {
-            int pos = bankIndices.indexOf(index);
-            if (pos > 0) {
-                Collections.swap(bankIndices, pos, pos - 1);
+        void moveBankUp(String bankId) {
+            int position = bankIds.indexOf(bankId);
+            if (position > 0) {
+                Collections.swap(bankIds, position, position - 1);
             }
         }
 
-        void moveBankDown(int index) {
-            int pos = bankIndices.indexOf(index);
-            if (pos >= 0 && pos < bankIndices.size() - 1) {
-                Collections.swap(bankIndices, pos, pos + 1);
+        void moveBankDown(String bankId) {
+            int position = bankIds.indexOf(bankId);
+            if (position >= 0 && position < bankIds.size() - 1) {
+                Collections.swap(bankIds, position, position + 1);
             }
         }
     }
