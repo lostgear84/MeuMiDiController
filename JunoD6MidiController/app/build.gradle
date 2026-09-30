@@ -33,6 +33,10 @@ android {
     }
 
     buildTypes {
+        debug {
+            applicationIdSuffix ".debug"
+            versionNameSuffix "-teste"
+        }
         release {
             minifyEnabled false
             signingConfig signingConfigs.release

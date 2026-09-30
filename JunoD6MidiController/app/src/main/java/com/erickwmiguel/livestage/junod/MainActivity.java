@@ -1233,15 +1233,27 @@ public class MainActivity extends Activity {
         // Botões
         LinearLayout buttons = new LinearLayout(this);
         
-        Button add = createPrimaryActionButton("+ NOVA CENA");
+        Button add = createPrimaryActionButton("ADICIONAR");
         add.setOnClickListener(v -> showCreateBankDialog());
-        
+
+        Button edit = createPrimaryActionButton("EDITAR");
+        edit.setOnClickListener(v -> showEditBankDialog());
+
         btnDeleteBank = createOutlineButton("EXCLUIR");
         btnDeleteBank.setOnClickListener(v -> showDeleteBankDialog());
         
         buttons.addView(add, new LinearLayout.LayoutParams(0, dp(34), 1));
-        buttons.addView(btnDeleteBank, marginParams(0, dp(34), dp(8), 0, 0, 0, 1));
-        
+
+        buttons.addView(
+                edit,
+                marginParams(0, dp(34), dp(8), 0, 0, 0, 1)
+        );
+
+        buttons.addView(
+                btnDeleteBank,
+                marginParams(0, dp(34), dp(8), 0, 0, 0, 1)
+        ); 
+
         card.addView(buttons, marginParams(-1, -2, 0, dp(10), 0, 0));
         parent.addView(card, marginParams(-1, -2, 0, 0, 0, dp(8)));
     }
@@ -2222,6 +2234,96 @@ public class MainActivity extends Activity {
 
         dialog.show();
     }
+
+    private void showEditBankDialog() {
+        if (!hasSelectedBank()) {
+            Toast.makeText(
+                    this,
+                    "Selecione uma cena para editar.",
+                    Toast.LENGTH_SHORT
+            ).show();
+            return;
+        }
+
+        final Bank bank = banks.get(selectedBankIndex);
+
+        LinearLayout form = new LinearLayout(this);
+        form.setOrientation(LinearLayout.VERTICAL);
+        form.setPadding(dp(18), dp(8), dp(18), dp(4));
+
+        form.addView(createDialogLabel("NOME DA CENA"));
+
+        EditText inputName = createThemeEditText("Nome da cena");
+        inputName.setText(bank.name);
+        inputName.setSelectAllOnFocus(false);
+        form.addView(inputName);
+
+        TextView midiLabel = createDialogLabel("USER SCENE MIDI 1 A 128");
+        midiLabel.setPadding(0, dp(16), 0, dp(6));
+        form.addView(midiLabel);
+
+        EditText inputScene = createThemeEditText("Ex. 12");
+        inputScene.setInputType(InputType.TYPE_CLASS_NUMBER);
+        inputScene.setText(String.valueOf(bank.scene));
+        form.addView(inputScene);
+
+        AlertDialog dialog = new AlertDialog.Builder(this)
+                .setTitle("EDITAR CENA")
+                .setView(form)
+                .setNegativeButton("CANCELAR", null)
+                .setPositiveButton("SALVAR", null)
+                .create();
+
+        dialog.setOnShowListener(listener -> {
+            Button saveButton = dialog.getButton(AlertDialog.BUTTON_POSITIVE);
+
+            saveButton.setOnClickListener(view -> {
+                String name = inputName.getText().toString().trim();
+                int scene = parseSceneNumber(
+                        inputScene.getText().toString()
+                );
+
+                if (name.isEmpty()) {
+                    inputName.setError("Informe um nome.");
+                    inputName.requestFocus();
+                    return;
+                }
+
+                if (scene < 1 || scene > 128) {
+                    inputScene.setError(
+                            "Informe um número entre 1 e 128."
+                    );
+                    inputScene.requestFocus();
+                    return;
+                }
+
+                bank.name = name;
+                bank.scene = scene;
+
+                sortBanksAlphabetically();
+
+                selectedBankIndex = banks.indexOf(bank);
+                activePresetIndex = -1;
+
+                saveBanks();
+                configureBankSpinner();
+
+                if (spinnerBanks != null && selectedBankIndex >= 0) {
+                    spinnerBanks.setSelection(selectedBankIndex);
+                }
+
+                Toast.makeText(
+                        this,
+                        "Cena atualizada.",
+                        Toast.LENGTH_SHORT
+                ).show();
+
+                dialog.dismiss();
+            });
+        });
+
+        dialog.show();
+    }    
 
     private void showDeleteBankDialog() {
         if (!hasSelectedBank()) {
@@ -3268,8 +3370,8 @@ public class MainActivity extends Activity {
 
     private static class Bank {
         final String id;
-        final String name;
-        final int scene;
+        String name;
+        int scene;
         final List<Preset> presets = new ArrayList<>();
 
         Bank(String id, String name, int scene) {
