@@ -122,6 +122,15 @@ public class MainActivity extends Activity {
 
     private boolean waitingForCurrentSceneMidi = false;
     private Runnable currentSceneMidiTimeout;
+    private int sceneMidiRetryCount = 0;
+
+    private final java.io.ByteArrayOutputStream sysExBuffer =
+            new java.io.ByteArrayOutputStream();
+
+    private final Object midiSysExLock = new Object();
+
+    private byte[] lastProcessedSysEx = null;
+    private long lastProcessedSysExTime = 0L;
 
     private String pendingCurrentSceneName;
     private int pendingSceneBankMsb = -1;
@@ -2224,7 +2233,69 @@ public class MainActivity extends Activity {
     }
 
     private void handleIncomingMidiMessage(byte[] message) {
-        if (waitingForCurrentSceneName && isCurrentSceneNameDt1(message)) {
+        if (message == null || message.length == 0) {
+            return;
+        }
+
+        synchronized (midiSysExLock) {
+            for (byte rawValue : message) {
+                int value = rawValue & 0xFF;
+
+                if (value == 0xF0) {
+                    sysExBuffer.reset();
+                    sysExBuffer.write(rawValue);
+                    continue;
+                }
+
+                if (sysExBuffer.size() == 0) {
+                    continue;
+                }
+
+                if (value == 0xF7) {
+                    sysExBuffer.write(rawValue);
+
+                    byte[] complete = sysExBuffer.toByteArray();
+                    sysExBuffer.reset();
+
+                    long now = System.currentTimeMillis();
+
+                    boolean isDuplicate =
+                            lastProcessedSysEx != null
+                                    && java.util.Arrays.equals(
+                                            lastProcessedSysEx,
+                                            complete
+                                    )
+                                    && now - lastProcessedSysExTime <= 300;
+
+                    if (isDuplicate) {
+                        android.util.Log.d(
+                                "LIVESTAGE_MIDI",
+                                "SysEx duplicado ignorado ("
+                                        + complete.length
+                                        + " bytes)"
+                        );
+                        continue;
+                    }
+
+                    lastProcessedSysEx = complete.clone();
+                    lastProcessedSysExTime = now;
+
+                    processCompleteSysEx(complete);
+                    continue;
+                }
+
+                if (value >= 0xF8) {
+                    continue;
+                }
+
+                sysExBuffer.write(rawValue);
+            }
+        }
+    }
+
+    private void processCompleteSysEx(byte[] message) {
+        if (waitingForCurrentSceneName
+                && isCurrentSceneNameDt1(message)) {
             pendingCurrentSceneName = decodeCurrentSceneName(message);
             waitingForCurrentSceneName = false;
 
@@ -2237,7 +2308,11 @@ public class MainActivity extends Activity {
             return;
         }
 
-        if (waitingForCurrentSceneMidi && isCurrentSceneMidiDt1(message)) {
+        if (waitingForCurrentSceneMidi
+                && isCurrentSceneMidiDt1(message)) {
+
+            sceneMidiRetryCount = 0;
+
             pendingSceneBankMsb = message[11] & 0x7F;
             pendingSceneBankLsb = message[12] & 0x7F;
             pendingSceneProgramChange = message[13] & 0x7F;
