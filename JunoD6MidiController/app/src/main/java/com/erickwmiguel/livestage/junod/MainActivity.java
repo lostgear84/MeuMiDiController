@@ -46,6 +46,12 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.UUID;
 
+import android.bluetooth.BluetoothAdapter;
+import android.bluetooth.BluetoothDevice;
+import android.bluetooth.BluetoothManager;
+import android.content.pm.PackageManager;
+import android.os.Build;
+
 
 public class MainActivity extends Activity {
     private static final String PREFS_NAME = "juno_d6_midi_prefs";
@@ -102,6 +108,13 @@ public class MainActivity extends Activity {
     private MidiOutputPort midiOutputPort;
     private MidiReceiver midiReceiver;
 
+    private MidiDevice bluetoothMidiDevice;
+    private MidiOutputPort bluetoothMidiOutputPort;
+    private MidiInputPort bluetoothMidiInputPort;
+    private MidiReceiver bluetoothMidiReceiver;
+
+    private static final int REQUEST_BLUETOOTH_PERMISSIONS = 2001;
+
     private ThemePalette palette;
 
     private boolean waitingForCurrentSceneName = false;
@@ -133,13 +146,19 @@ public class MainActivity extends Activity {
     @Override
     protected void onResume() {
         super.onResume();
+
         refreshMidiDevices();
         openMidiDeviceIfNeeded();
+
+        if (bluetoothMidiInputPort == null) {
+            requestBluetoothPermissionsAndConnect();
+        }
     }
 
     @Override
     protected void onPause() {
         cancelSceneRead();
+        closeBluetoothMidi();
         closeMidiDevice();
         super.onPause();
     }
@@ -1702,7 +1721,7 @@ public class MainActivity extends Activity {
             return;
         }
 
-        if (midiInputPort == null) {
+        if (getActiveMidiInputPort() == null) {
             openMidiDeviceIfNeeded();
             Toast.makeText(
                     this,
@@ -1744,7 +1763,7 @@ public class MainActivity extends Activity {
         );
 
         try {
-            midiInputPort.send(request, 0, request.length);
+            getActiveMidiInputPort().send(request, 0, request.length);
             Toast.makeText(
                     this,
                     "Lendo Scene atual do JUNO-D...",
@@ -1767,7 +1786,7 @@ public class MainActivity extends Activity {
     }
 
     private void requestCurrentSceneMidi() {
-        if (midiInputPort == null) {
+        if (getActiveMidiInputPort() == null) {
             Toast.makeText(
                     this,
                     "A conexão MIDI foi perdida durante a leitura.",
@@ -1804,7 +1823,7 @@ public class MainActivity extends Activity {
         );
 
         try {
-            midiInputPort.send(request, 0, request.length);
+            getActiveMidiInputPort().send(request, 0, request.length);
         } catch (IOException exception) {
             waitingForCurrentSceneMidi = false;
             mainHandler.removeCallbacks(currentSceneMidiTimeout);
@@ -1886,6 +1905,246 @@ public class MainActivity extends Activity {
         }
 
         return (128 - (sum % 128)) & 0x7F;
+    }
+
+    private void requestBluetoothPermissionsAndConnect() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            String[] permissions = {
+                    android.Manifest.permission.BLUETOOTH_SCAN,
+                    android.Manifest.permission.BLUETOOTH_CONNECT
+            };
+
+            boolean allGranted = true;
+
+            for (String permission : permissions) {
+                if (checkSelfPermission(permission)
+                        != PackageManager.PERMISSION_GRANTED) {
+                    allGranted = false;
+                    break;
+                }
+            }
+
+            if (!allGranted) {
+                requestPermissions(
+                        permissions,
+                        REQUEST_BLUETOOTH_PERMISSIONS
+                );
+                return;
+            }
+        }
+
+        connectBluetoothMidi();
+    }
+
+    @Override
+    public void onRequestPermissionsResult(
+            int requestCode,
+            String[] permissions,
+            int[] grantResults
+    ) {
+        super.onRequestPermissionsResult(
+                requestCode,
+                permissions,
+                grantResults
+        );
+
+        if (requestCode != REQUEST_BLUETOOTH_PERMISSIONS) {
+            return;
+        }
+
+        boolean granted = grantResults.length > 0;
+
+        for (int result : grantResults) {
+            if (result != PackageManager.PERMISSION_GRANTED) {
+                granted = false;
+                break;
+            }
+        }
+
+        if (granted) {
+            connectBluetoothMidi();
+            return;
+        }
+
+        Toast.makeText(
+                this,
+                "Permissões Bluetooth são necessárias.",
+                Toast.LENGTH_SHORT
+        ).show();
+    }
+
+    private void connectBluetoothMidi() {
+        if (bluetoothMidiInputPort != null) {
+            return;
+        }
+
+        if (midiManager == null) {
+            Toast.makeText(
+                    this,
+                    "MIDI não suportado neste aparelho.",
+                    Toast.LENGTH_SHORT
+            ).show();
+            return;
+        }
+
+        BluetoothManager bluetoothManager =
+                (BluetoothManager) getSystemService(
+                        Context.BLUETOOTH_SERVICE
+                );
+
+        if (bluetoothManager == null) {
+            Toast.makeText(
+                    this,
+                    "Bluetooth não disponível.",
+                    Toast.LENGTH_SHORT
+            ).show();
+            return;
+        }
+
+        BluetoothAdapter adapter = bluetoothManager.getAdapter();
+
+        if (adapter == null || !adapter.isEnabled()) {
+            Toast.makeText(
+                    this,
+                    "Ative o Bluetooth.",
+                    Toast.LENGTH_SHORT
+            ).show();
+            return;
+        }
+
+        BluetoothDevice target = null;
+
+        for (BluetoothDevice device : adapter.getBondedDevices()) {
+            if ("MidiPortA".equals(device.getName())) {
+                target = device;
+                break;
+            }
+        }
+
+        if (target == null) {
+            Toast.makeText(
+                    this,
+                    "MidiPortA não encontrado. Conecte pelo MIDI BLE Connect.",
+                    Toast.LENGTH_LONG
+            ).show();
+            return;
+        }
+
+        midiManager.openBluetoothDevice(
+                target,
+                new MidiManager.OnDeviceOpenedListener() {
+                    @Override
+                    public void onDeviceOpened(MidiDevice device) {
+                        runOnUiThread(() -> {
+                            if (device == null) {
+                                Toast.makeText(
+                                        MainActivity.this,
+                                        "Não foi possível abrir o MIDI Bluetooth.",
+                                        Toast.LENGTH_SHORT
+                                ).show();
+                                return;
+                            }
+
+                            openBluetoothMidiPorts(device);
+
+                            Toast.makeText(
+                                    MainActivity.this,
+                                    "MIDI Bluetooth conectado.",
+                                    Toast.LENGTH_SHORT
+                            ).show();
+                        });
+                    }
+                },
+                null
+        );
+    }
+
+    private void openBluetoothMidiPorts(MidiDevice device) {
+        closeBluetoothMidi();
+
+        bluetoothMidiDevice = device;
+
+        MidiDeviceInfo info = device.getInfo();
+
+        if (info.getOutputPortCount() > 0) {
+            bluetoothMidiOutputPort = device.openOutputPort(0);
+        }
+
+        if (info.getInputPortCount() > 0) {
+            bluetoothMidiInputPort = device.openInputPort(0);
+        }
+
+        if (bluetoothMidiOutputPort != null) {
+            bluetoothMidiReceiver = new MidiReceiver() {
+                @Override
+                public void onSend(
+                        byte[] message,
+                        int offset,
+                        int count,
+                        long timestamp
+                ) {
+                    byte[] received = new byte[count];
+                    System.arraycopy(
+                            message,
+                            offset,
+                            received,
+                            0,
+                            count
+                    );
+
+                    handleIncomingMidiMessage(received);
+                }
+            };
+
+            bluetoothMidiOutputPort.connect(bluetoothMidiReceiver);
+        }
+
+        updateMidiStatus(
+                "MIDI BLUETOOTH CONECTADO",
+                bluetoothMidiOutputPort != null
+        );
+    }
+
+    private void closeBluetoothMidi() {
+        if (bluetoothMidiOutputPort != null) {
+            try {
+                bluetoothMidiOutputPort.disconnect(
+                        bluetoothMidiReceiver
+                );
+                bluetoothMidiOutputPort.close();
+            } catch (Exception ignored) {
+            }
+
+            bluetoothMidiOutputPort = null;
+        }
+
+        if (bluetoothMidiInputPort != null) {
+            try {
+                bluetoothMidiInputPort.close();
+            } catch (Exception ignored) {
+            }
+
+            bluetoothMidiInputPort = null;
+        }
+
+        if (bluetoothMidiDevice != null) {
+            try {
+                bluetoothMidiDevice.close();
+            } catch (Exception ignored) {
+            }
+
+            bluetoothMidiDevice = null;
+        }
+
+        bluetoothMidiReceiver = null;
+    }
+
+    private MidiInputPort getActiveMidiInputPort() {
+        if (bluetoothMidiInputPort != null) {
+            return bluetoothMidiInputPort;
+        }
+
+        return midiInputPort;
     }
 
     private void refreshMidiDevices() {
@@ -2521,7 +2780,7 @@ public class MainActivity extends Activity {
             return;
         }
 
-        if (midiInputPort == null) {
+        if (getActiveMidiInputPort() == null) {
             openMidiDeviceIfNeeded();
             Toast.makeText(
                     this,
@@ -2545,7 +2804,7 @@ public class MainActivity extends Activity {
         };
 
         try {
-            midiInputPort.send(messages, 0, messages.length);
+            getActiveMidiInputPort().send(messages, 0, messages.length);
 
             Toast.makeText(
                     this,
@@ -2762,7 +3021,7 @@ public class MainActivity extends Activity {
     }
 
     private void applyPreset(Bank bank, Preset preset) {
-        if (midiInputPort == null) {
+        if (getActiveMidiInputPort() == null) {
             openMidiDeviceIfNeeded();
 
             Toast.makeText(
@@ -2803,7 +3062,7 @@ public class MainActivity extends Activity {
                         (byte) 0xF7
                 };
 
-                midiInputPort.send(message, 0, message.length);
+                getActiveMidiInputPort().send(message, 0, message.length);
             }
 
             Toast.makeText(
