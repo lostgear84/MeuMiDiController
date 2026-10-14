@@ -3096,7 +3096,9 @@ public class MainActivity extends Activity {
     }
 
     private void applyPreset(Bank bank, Preset preset) {
-        if (getActiveMidiInputPort() == null) {
+        final MidiInputPort port = getActiveMidiInputPort();
+
+        if (port == null) {
             openMidiDeviceIfNeeded();
 
             Toast.makeText(
@@ -3107,11 +3109,32 @@ public class MainActivity extends Activity {
             return;
         }
 
-        try {
-            for (int partIndex = 0; partIndex < 8; partIndex++) {
+        final boolean[] states = preset.partStates.clone();
+        final String presetName = preset.name;
+
+        mainHandler.post(new Runnable() {
+            private int partIndex = 0;
+
+            @Override
+            public void run() {
+                if (getActiveMidiInputPort() != port) {
+                    android.util.Log.w(
+                            "LIVESTAGE_MIDI",
+                            "Aplicação interrompida: a porta MIDI mudou."
+                    );
+
+                    Toast.makeText(
+                            MainActivity.this,
+                            "A conexão MIDI mudou durante o envio do preset.",
+                            Toast.LENGTH_LONG
+                    ).show();
+                    return;
+                }
+
                 int partNumber = partIndex + 1;
                 int addressPart = 0x20 + partNumber;
-                int value = preset.partStates[partIndex] ? 0x01 : 0x00;
+                int value = states[partIndex] ? 0x01 : 0x00;
+
                 int checksum = calculateRolandChecksum(
                         0x01,
                         0x00,
@@ -3137,27 +3160,57 @@ public class MainActivity extends Activity {
                         (byte) 0xF7
                 };
 
-                getActiveMidiInputPort().send(message, 0, message.length);
+                try {
+                    port.send(message, 0, message.length);
+
+                    StringBuilder hex = new StringBuilder();
+
+                    for (byte b : message) {
+                        hex.append(
+                                String.format(
+                                        java.util.Locale.US,
+                                        "%02X ",
+                                        b & 0xFF
+                                )
+                        );
+                    }
+
+                    android.util.Log.d(
+                            "LIVESTAGE_MIDI",
+                            "Preset " + presetName
+                                    + " | Part " + partNumber
+                                    + " | " + (value == 1 ? "ON" : "OFF")
+                                    + " | " + hex
+                    );
+                } catch (IOException exception) {
+                    android.util.Log.e(
+                            "LIVESTAGE_MIDI",
+                            "Falha no envio da Part " + partNumber,
+                            exception
+                    );
+
+                    Toast.makeText(
+                            MainActivity.this,
+                            "Falha ao enviar a Part " + partNumber
+                                    + ". Aplicação do preset interrompida.",
+                            Toast.LENGTH_LONG
+                    ).show();
+                    return;
+                }
+
+                partIndex++;
+
+                if (partIndex < 8) {
+                    mainHandler.postDelayed(this, 50L);
+                } else {
+                    Toast.makeText(
+                            MainActivity.this,
+                            "Comandos do preset enviados: " + presetName,
+                            Toast.LENGTH_SHORT
+                    ).show();
+                }
             }
-
-            Toast.makeText(
-                    this,
-                    "PRESET APLICADO\n"
-                            + preset.name.toUpperCase()
-                            + "\n\n"
-                            + preset.getActivePartsSummary(),
-                    Toast.LENGTH_LONG
-            ).show();
-        } catch (IOException exception) {
-            closeMidiDevice();
-            openMidiDeviceIfNeeded();
-
-            Toast.makeText(
-                    this,
-                    "MIDI caiu. Reconectando; toque novamente em 1 segundo.",
-                    Toast.LENGTH_LONG
-            ).show();
-        }
+        });
     }
 
     private void saveBanks() {
